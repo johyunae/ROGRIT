@@ -8,12 +8,11 @@
     <meta name="apple-mobile-web-app-title" content="로그릿">
     <meta name="application-name" content="로그릿">
     
-    <!-- 사용자님이 GitHub에 올리신 icon.png 파일과 연결 -->
+    <!-- 아이콘 설정 -->
     <link rel="icon" type="image/png" href="./icon.png">
     <link rel="apple-touch-icon" href="./icon.png">
     <link rel="shortcut icon" href="./icon.png">
     
-    <!-- PWA 설정: 어플 설치 시 아이콘과 이름 정의 -->
     <link rel="manifest" href="data:application/manifest+json,{'name':'로그릿','short_name':'로그릿','start_url':'./index.html','display':'standalone','background_color':'#000000','theme_color':'#6366f1','icons':[{'src':'icon.png','sizes':'512x512','type':'image/png','purpose':'any maskable'}]}">
 
     <meta name="mobile-web-app-capable" content="yes">
@@ -30,50 +29,51 @@
             --bg-color: #000000;
             --card-bg: #111111;
             --text-main: #cbd5e1; 
+            --text-bold: #ffffff;
             --border-color: #1e1e1e;
             --brand-color: #6366f1; 
             --calendar-border: rgba(203, 213, 225, 0.1); 
             --sun-color: #ff4d4d; 
             --sat-color: #4d94ff; 
+            --badge-bg: rgba(255,255,255,0.05);
         }
 
+        /* 화이트 모드 가독성 대폭 강화 */
         body.light-mode {
             --bg-color: #ffffff;
             --card-bg: #f8fafc;
-            --text-main: #334155; 
+            --text-main: #1e293b; 
+            --text-bold: #000000; 
             --border-color: #e2e8f0;
             --brand-color: #4f46e5;
             --calendar-border: #e2e8f0;
-            --sun-color: #e11d48;
+            --sun-color: #dc2626;
             --sat-color: #2563eb;
+            --badge-bg: #f1f5f9; 
         }
 
         body { 
             font-family: 'Pretendard', sans-serif; 
             background-color: var(--bg-color); 
-            color: var(--text-main) !important;
+            color: var(--text-main);
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             overscroll-behavior-y: contain;
             letter-spacing: -0.05em; margin: 0; padding: 0;
-            text-align: left;
         }
 
-        span, p, h1, h2, h3, div, label, input, textarea { color: inherit !important; text-align: left; }
+        span, p, h1, h2, h3, div, label, input, textarea { color: inherit; text-align: left; }
+        .text-important { color: var(--text-bold) !important; }
 
-        /* 달력 칸 설정 */
+        /* 달력 그리드 */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 0.5px solid var(--calendar-border); width: 100vw; margin: 0; }
         .memo-cell { min-height: 105px; background-color: var(--bg-color); display: flex; flex-direction: column; padding: 0; position: relative; cursor: pointer; border-right: 0.5px solid var(--calendar-border); border-bottom: 0.5px solid var(--calendar-border); overflow: hidden; }
-        
-        /* 터치한 날짜 테두리 효과 */
-        .memo-cell.is-selected { box-shadow: inset 0 0 0 2px var(--brand-color) !important; z-index: 10; }
+        .memo-cell.is-selected { box-shadow: inset 0 0 0 2.5px var(--brand-color) !important; z-index: 10; }
         .memo-cell:nth-child(7n) { border-right: none; }
         
-        /* 날짜 숫자 상단 영역 */
         .date-header { display: flex; flex-direction: column; align-items: center; width: 38px; margin-left: 1px; margin-top: 2px; position: relative; z-index: 2; height: 42px; }
-        .date-num { font-size: 14px; font-weight: 600; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 3; }
+        .date-num { font-size: 14px; font-weight: 700; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; position: relative; z-index: 3; color: var(--text-main); }
         
-        /* 오늘 날짜 원형 강조 */
         .is-today .date-num { color: #ffffff !important; font-weight: 900; }
         .is-today .date-num::after {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -86,32 +86,26 @@
             letter-spacing: -0.06em; margin-top: -6px; text-align: center; width: fit-content; 
             white-space: nowrap; line-height: 1; z-index: 4; display: inline-block;
         }
-        .holiday-badge-red { background-color: rgba(255, 77, 77, 0.3); color: #ff4d4d !important; }
-        .holiday-badge-indigo { background-color: rgba(99, 102, 241, 0.35); color: #a5b4fc !important; }
+        .holiday-badge-red { background-color: rgba(255, 77, 77, 0.15); color: var(--sun-color) !important; }
+        .holiday-badge-indigo { background-color: rgba(99, 102, 241, 0.15); color: var(--brand-color) !important; }
 
         .sun { color: var(--sun-color) !important; }
         .sat { color: var(--sat-color) !important; }
 
-        .memo-strip { width: 100%; font-size: 10px; padding: 1px 4px; margin-bottom: 2px; white-space: normal; word-break: break-all; font-weight: 400; line-height: 1.2; color: var(--text-main) !important; margin-top: 1px; }
-        .strip-time { font-weight: 700; color: #ffffff; margin-right: 2px; }
-        .light-mode .strip-time { color: #000000; }
+        .memo-strip { width: 100%; font-size: 10px; padding: 1px 4px; margin-bottom: 2px; white-space: normal; word-break: break-all; font-weight: 600; line-height: 1.2; color: var(--text-main); margin-top: 1px; }
+        .strip-time { font-weight: 800; color: var(--text-bold); margin-right: 2px; }
 
-        /* 상세 리스트 패널 */
-        .expansion-panel { grid-column: 1 / span 7; background-color: var(--card-bg); border-bottom: 0.5px solid var(--calendar-border); padding: 12px 16px; animation: slideDown 0.25s ease-out; scroll-margin-top: 80px; }
+        .expansion-panel { grid-column: 1 / span 7; background-color: var(--card-bg); border-bottom: 1px solid var(--calendar-border); padding: 14px 16px; animation: slideDown 0.2s ease-out; scroll-margin-top: 80px; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 입력창 디자인 */
-        .input-field { width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 16px; color: var(--text-main) !important; outline: none; font-size: 16px; height: 52px; display: flex; align-items: center; }
-        .memo-field { height: auto !important; min-height: 100px; padding: 14px 16px; line-height: 1.6; }
-        .btn-primary { width: 100%; background-color: var(--brand-color); color: #ffffff !important; padding: 1.1rem; border-radius: 8px; font-weight: 700; }
+        .input-field { width: 100%; background-color: var(--bg-color); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 0 16px; color: var(--text-bold) !important; outline: none; font-size: 16px; height: 54px; }
+        .btn-primary { width: 100%; background-color: var(--brand-color); color: #ffffff !important; padding: 1.1rem; border-radius: 12px; font-weight: 800; }
 
-        /* 플로팅 버튼 */
-        #btn-top { position: fixed; right: 20px; bottom: 170px; width: 52px; height: 52px; background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--calendar-border); display: none; align-items: center; justify-content: center; z-index: 35; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        #btn-top { position: fixed; right: 20px; bottom: 175px; width: 52px; height: 52px; background-color: var(--card-bg); color: var(--text-bold); border: 1px solid var(--calendar-border); display: none; align-items: center; justify-content: center; z-index: 35; border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
         #btn-top.visible { display: flex; }
-        .fab-add { position: fixed; right: 20px; bottom: 100px; width: 56px; height: 56px; background-color: var(--brand-color); color: white; border-radius: 18px; shadow: 0 6px 20px rgba(99, 102, 241, 0.4); display: flex; align-items: center; justify-content: center; z-index: 34; active:scale-95; }
+        .fab-add { position: fixed; right: 20px; bottom: 105px; width: 58px; height: 58px; background-color: var(--brand-color); color: white; border-radius: 20px; shadow: 0 6px 20px rgba(99, 102, 241, 0.4); display: flex; align-items: center; justify-content: center; z-index: 34; active:scale-90; transition: transform 0.1s; }
 
-        /* 토스트 알림 메시지 */
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 13px; font-weight: 600; z-index: 100; opacity: 0; visibility: hidden; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 13px; font-weight: 600; z-index: 100; opacity: 0; visibility: hidden; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         #toast.visible { opacity: 1; visibility: visible; bottom: 100px; }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -119,95 +113,98 @@
 </head>
 <body class="pb-40 no-scrollbar">
 
-    <!-- 상단 바: 로그릿 글자 영역과 기능 버튼 영역 분리 -->
-    <div class="fixed top-0 left-0 right-0 h-14 bg-black/95 backdrop-blur-xl flex items-center justify-between px-4 z-50 border-b border-white/5 light-mode:bg-white light-mode:border-black/5">
-        <!-- 왼쪽: 서비스 로고 -->
-        <div class="flex items-center gap-2 text-white">
-            <div class="w-7 h-7 bg-indigo-600 flex items-center justify-center font-black text-lg rounded-sm shadow-sm">L</div>
+    <!-- 상단 고정 헤더 -->
+    <div class="fixed top-0 left-0 right-0 h-14 bg-black/95 backdrop-blur-xl flex items-center justify-between px-4 z-50 border-b border-white/5 light-mode:bg-white light-mode:border-slate-200">
+        <!-- 왼쪽: 서비스 이름 -->
+        <div class="flex items-center gap-2">
+            <div class="w-7 h-7 bg-indigo-600 flex items-center justify-center text-white font-black text-lg rounded-sm shadow-sm">L</div>
             <div class="flex flex-col">
-                <span class="font-bold text-sm tracking-tighter">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V107</span>
+                <span class="font-bold text-sm tracking-tighter text-important">로그릿</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V110</span>
             </div>
         </div>
 
-        <!-- 오른쪽: 버튼 모음 -->
-        <div class="flex items-center gap-1.5">
-            <button onclick="toggleFullScreen()" class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center active:scale-90 transition-transform">
-                <i data-lucide="maximize" class="w-4 h-4 text-white"></i>
+        <!-- 오른쪽: 기능 버튼들 -->
+        <div class="flex items-center gap-2">
+            <button onclick="toggleFullScreen()" class="w-8 h-8 bg-white/10 light-mode:bg-slate-100 rounded-lg flex items-center justify-center active:scale-90 transition-transform">
+                <i data-lucide="maximize" class="w-4 h-4 text-important"></i>
             </button>
             <button onclick="goToToday()" class="px-3 h-8 bg-indigo-600 text-[11px] font-bold text-white rounded-lg flex items-center justify-center active:scale-90 transition-transform">
                 오늘
             </button>
-            <button onclick="openSettings()" class="w-8 h-8 flex items-center justify-center text-slate-400 active:text-white transition-colors">
+            <button onclick="openSettings()" class="w-8 h-8 flex items-center justify-center text-slate-400 light-mode:text-slate-500 active:scale-90 transition-transform">
                 <i data-lucide="settings" class="w-5 h-5"></i>
             </button>
         </div>
     </div>
 
-    <!-- 앱 뷰 본문 -->
+    <!-- 앱 메인 뷰 -->
     <div id="app-view" class="w-full mx-auto pt-14 px-0 overflow-x-hidden"></div>
 
     <!-- 하단 네비게이션 -->
-    <nav id="bottom-nav" class="fixed bottom-6 left-4 right-4 max-w-[calc(100%-2rem)] mx-auto bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 h-16 flex justify-around items-center z-40 rounded-[2.5rem] shadow-2xl px-1">
-        <button onclick="navTo('e_cal')" id="nav-e_cal" class="flex flex-col items-center gap-1 transition-all flex-1"><i data-lucide="calendar" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">일정</span></button>
-        <button onclick="navTo('list')" id="nav-list" class="flex flex-col items-center gap-1 transition-all flex-1"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">기록</span></button>
-        <button onclick="navTo('s_cal')" id="nav-s_cal" class="flex flex-col items-center gap-1 transition-all flex-1"><i data-lucide="trending-up" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">매출</span></button>
-        <button onclick="navTo('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all flex-1"><i data-lucide="layout-grid" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">홈</span></button>
+    <nav id="bottom-nav" class="fixed bottom-6 left-4 right-4 max-w-[calc(100%-2rem)] mx-auto bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 h-16 flex justify-around items-center z-40 rounded-[2.5rem] shadow-2xl px-1 light-mode:bg-white/95 light-mode:border-slate-200">
+        <button onclick="navTo('e_cal')" id="nav-e_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="calendar" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">일정</span></button>
+        <button onclick="navTo('list')" id="nav-list" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">기록</span></button>
+        <button onclick="navTo('s_cal')" id="nav-s_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="trending-up" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">매출</span></button>
+        <button onclick="navTo('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="layout-grid" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">홈</span></button>
     </nav>
 
-    <!-- 유틸리티 버튼 -->
+    <!-- 화살표 및 플러스 버튼 -->
     <button id="btn-top" onclick="scrollToTop()"><i data-lucide="chevron-up" class="w-6 h-6"></i></button>
-    <button onclick="openEntryModal()" class="fab-add shadow-indigo-500/30 shadow-xl"><i data-lucide="plus" class="w-8 h-8"></i></button>
+    <button onclick="openEntryModal()" class="fab-add shadow-indigo-500/40 shadow-xl"><i data-lucide="plus" class="w-8 h-8 text-white"></i></button>
 
     <div id="toast">알림</div>
 
-    <!-- 입력 모달 -->
+    <!-- 활동 기록 입력 모달 -->
     <div id="entry-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-end">
-        <div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 slide-up pb-12 overflow-y-auto max-h-[90vh] light-mode:bg-white text-left text-white">
-            <div class="flex justify-between items-center mb-6 text-left">
-                <h3 class="text-xl font-bold">활동 기록</h3>
-                <button onclick="closeEntryModal()" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 slide-up pb-12 overflow-y-auto max-h-[90vh] light-mode:bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-important">활동 기록</h3>
+                <button onclick="closeEntryModal()" class="p-2 bg-zinc-800 light-mode:bg-slate-100 rounded-full text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <form id="record-form" class="space-y-4 text-left">
+            <form id="record-form" class="space-y-4">
                 <input type="date" id="f-date" class="input-field" required>
                 <div class="grid grid-cols-2 gap-3"><input type="text" id="f-departure" placeholder="출발지" class="input-field font-bold"><input type="text" id="f-arrival" placeholder="도착지" class="input-field font-bold"></div>
                 <div class="grid grid-cols-2 gap-3"><input type="text" id="f-time" placeholder="시간 (HHMM)" maxlength="5" inputmode="numeric" oninput="autoFormatTime(this)" class="input-field font-mono text-center text-lg"><input type="number" id="f-people" placeholder="명" class="input-field font-bold"></div>
                 <input type="text" id="f-supplier" placeholder="거래처명" class="input-field font-bold">
                 <div class="relative w-full">
                     <input type="text" id="f-amount-display" placeholder="매출 금액" inputmode="numeric" oninput="handleAmountInput(this)" class="input-field font-bold text-xl pr-10">
-                    <span class="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 font-bold">원</span>
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 opacity-60 font-bold text-important">원</span>
                 </div>
-                <textarea id="f-note" placeholder="상세 메모" class="input-field memo-field resize-none" oninput="autoResize(this)"></textarea>
+                <textarea id="f-note" placeholder="상세 메모" class="input-field memo-field resize-none text-white h-auto min-h-[120px] p-4 leading-relaxed" oninput="autoResize(this)"></textarea>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" id="delete-btn" onclick="deleteItemDirect()" class="hidden flex-1 bg-red-950/30 text-red-500 py-3.5 border border-red-900/30 rounded-xl font-bold text-center">삭제</button>
-                    <button type="submit" class="flex-[2] btn-primary text-center">저장 완료</button>
+                    <button type="button" id="delete-btn" onclick="deleteItemDirect()" class="hidden flex-1 bg-red-950/20 light-mode:bg-red-50 text-red-500 py-4 border border-red-900/20 rounded-xl font-bold">삭제</button>
+                    <button type="submit" class="flex-[2] btn-primary">기록 저장하기</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- 설정 모달 -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6 text-left">
-        <div class="bg-zinc-900 w-full max-w-sm rounded-3xl p-7 border border-white/10 shadow-2xl overflow-y-auto max-h-[85vh] light-mode:bg-white text-white text-left">
-            <div class="flex justify-between items-center mb-8"><h3 class="text-xl font-bold">시스템 설정</h3><button onclick="closeSettings()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-            <div class="space-y-6 text-left">
-                <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl">
-                    <span class="text-sm font-bold">화이트 모드</span>
-                    <button onclick="toggleTheme()" class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors"><div id="toggle-dot" class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform"></div></button>
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6">
+        <div class="bg-zinc-900 w-full max-w-sm rounded-3xl p-7 border border-white/10 shadow-2xl overflow-y-auto max-h-[85vh] light-mode:bg-white light-mode:border-slate-200">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-xl font-bold text-important">시스템 설정</h3>
+                <button onclick="closeSettings()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-6">
+                <div class="flex justify-between items-center bg-white/5 light-mode:bg-slate-100 p-4 rounded-xl">
+                    <span class="text-sm font-bold text-important">화이트 모드</span>
+                    <button onclick="toggleTheme()" class="w-11 h-6 bg-zinc-700 light-mode:bg-slate-300 rounded-full relative transition-colors"><div id="toggle-dot" class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform"></div></button>
                 </div>
-                <div class="pt-4 border-t border-white/10 space-y-4 text-left">
-                    <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest text-center">Data Backup</p>
-                    <button onclick="exportData()" class="w-full py-4 bg-zinc-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> 백업 파일 만들기</button>
-                    <button onclick="document.getElementById('file-input').click()" class="w-full py-4 bg-zinc-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors"><i data-lucide="upload" class="w-4 h-4"></i> 백업 불러오기</button>
+                <div class="pt-4 border-t border-white/10 light-mode:border-slate-200 space-y-4">
+                    <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest text-center">Data Storage</p>
+                    <button onclick="exportData()" class="w-full py-4 bg-zinc-800 light-mode:bg-slate-100 rounded-xl text-xs font-bold text-important flex items-center justify-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> 백업 파일 만들기</button>
+                    <button onclick="document.getElementById('file-input').click()" class="w-full py-4 bg-zinc-700 light-mode:bg-slate-200 rounded-xl text-xs font-bold text-important flex items-center justify-center gap-2"><i data-lucide="upload" class="w-4 h-4"></i> 백업 불러오기</button>
                     <input type="file" id="file-input" class="hidden" accept=".json" onchange="importFile(event)">
-                    <button onclick="if(confirm('모든 기록을 삭제할까요?')){db=[];sync();closeSettings();}" class="w-full py-2 text-[10px] text-red-500 opacity-60 text-center">전체 데이터 초기화</button>
+                    <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();closeSettings();}" class="w-full py-2 text-[10px] text-red-500 opacity-60 text-center">전체 데이터 초기화</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'logrit_v107_master_storage';
+        const STORAGE_KEY = 'logrit_v110_master_storage';
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         let isLightMode = JSON.parse(localStorage.getItem('theme_is_light') || 'false');
         
@@ -331,21 +328,23 @@
 
         function renderItemCard(item, showDate = false, hideAmount = false) {
             return `
-                <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-3xl border border-white/5 mb-2 active:opacity-60 text-left light-mode:bg-white light-mode:border-slate-200 shadow-sm">
-                    <div class="flex justify-between items-center pb-2 mb-2 border-b border-white/5 opacity-80 text-left">
-                        <div class="flex items-center gap-2 text-indigo-400 font-bold text-[13px] uppercase text-left">
+                <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-3xl border border-white/5 light-mode:border-slate-200 light-mode:bg-white mb-3 active:opacity-60 text-left shadow-sm">
+                    <div class="flex justify-between items-center pb-2 mb-2 border-b border-white/5 light-mode:border-slate-100 opacity-80 text-white text-important">
+                        <div class="flex items-center gap-2 text-indigo-500 font-bold text-[13px] uppercase">
                             ${showDate ? `<span class="px-2 py-0.5 rounded bg-indigo-500/10 text-left">${item.date.split('-').slice(1).join('.')}</span>` : ''}
-                            <span class="font-mono text-left">${formatTimeDisplay(item.time) || '--시'}</span>
+                            <span class="font-mono text-important">${formatTimeDisplay(item.time) || '--시'}</span>
                         </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 opacity-30"></i>
+                        <i data-lucide="chevron-right" class="w-4 h-4 opacity-40 text-important"></i>
                     </div>
-                    <div class="space-y-2 text-left text-white">
-                        <p class="text-[16px] font-bold leading-tight text-left">${item.note || '내용 없음'}</p>
-                        ${(item.departure || item.arrival) ? `<div class="text-[13px] opacity-70 bg-slate-900/40 p-2 rounded-xl border border-white/5 text-left"><span>${item.departure || '..'} → ${item.arrival || '..'}</span></div>` : ''}
-                        ${(item.people > 0) ? `<div class="text-[12px] font-bold text-indigo-400 px-1 text-left">인원: ${item.people}명</div>` : ''}
-                        <div class="flex justify-between items-center pt-2 mt-1 text-left">
-                            <span class="text-[12px] font-bold text-slate-500 uppercase tracking-tighter text-left">${item.supplier || '미지정'}</span>
-                            ${(!hideAmount && item.amount > 0) ? `<p class="text-[18px] font-black text-[#cbd5e1] tracking-tighter text-right text-left">💰 ${formatKRW(item.amount)}원</p>` : ''}
+                    <div class="space-y-2.5">
+                        <p class="text-[18px] font-bold text-important leading-snug">${item.note || '내용 없음'}</p>
+                        ${(item.departure || item.arrival) ? `<div class="text-[15px] font-bold bg-[var(--badge-bg)] p-2.5 rounded-xl border border-white/5 light-mode:border-slate-300 text-important"><span class="flex items-center gap-2">${item.departure || '..'} <i data-lucide="arrow-right" class="w-4 h-4 opacity-50"></i> ${item.arrival || '..'}</span></div>` : ''}
+                        <div class="flex justify-between items-end pt-1">
+                            <div class="flex flex-col gap-1">
+                                ${(item.people > 0) ? `<span class="text-[13px] font-bold text-indigo-500">인원: ${item.people}명</span>` : ''}
+                                <span class="text-[13px] font-bold text-slate-500 uppercase tracking-tighter">${item.supplier || '미지정'}</span>
+                            </div>
+                            ${(!hideAmount && item.amount > 0) ? `<p class="text-[20px] font-black text-important tracking-tighter text-right">💰 ${formatKRW(item.amount)}원</p>` : ''}
                         </div>
                     </div>
                 </div>
@@ -354,21 +353,21 @@
 
         function render() {
             const root = document.getElementById('app-view'), navs = ['e_cal', 'list', 's_cal', 'home'];
-            navs.forEach(id => { const btn = document.getElementById('nav-' + id); if(currentNav === id) { btn.classList.add('text-indigo-400', 'scale-110'); btn.classList.remove('text-slate-400'); } else { btn.classList.remove('text-indigo-400', 'scale-110'); btn.classList.add('text-slate-400'); } });
+            navs.forEach(id => { const btn = document.getElementById('nav-' + id); if(currentNav === id) { btn.classList.add('text-indigo-500', 'scale-110'); btn.classList.remove('text-slate-400'); } else { btn.classList.remove('text-indigo-500', 'scale-110'); btn.classList.add('text-slate-400'); } });
             const monthPrefix = `${calContext.getFullYear()}-${String(calContext.getMonth()+1).padStart(2,'0')}`;
             const todayStr = getLocalToday();
 
             if(currentNav === 'home') {
                 const todayItems = sortItemsByTime(db.filter(x => x.date === todayStr));
                 const monthTotal = db.filter(x => x.date.startsWith(monthPrefix)).reduce((acc, cur) => acc + (Number(cur.amount) || 0), 0);
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-left text-white"><div class="bg-gradient-to-br from-indigo-950/20 to-black p-8 mb-8 border border-indigo-500/10 shadow-2xl rounded-[2rem] text-left"><p class="opacity-50 text-[11px] uppercase tracking-[0.2em] mb-1 text-left">Monthly Total Rev</p><h2 class="text-5xl font-black text-white tracking-tighter text-left">${formatKRW(monthTotal)}<span class="text-xl ml-1 opacity-40 font-light text-white">원</span></h2><div class="mt-8 flex flex-col text-left"><span class="text-[11px] opacity-40 uppercase tracking-widest text-left">오늘 일정</span><span class="text-3xl font-black text-indigo-400 text-left">${todayItems.length}건</span></div></div><h3 class="opacity-40 text-[11px] uppercase px-1 mb-4 tracking-[0.3em] text-left">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-20 opacity-30 text-sm italic text-left">기록이 없습니다.</p>'}</div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-important"><div class="bg-gradient-to-br from-indigo-950/20 to-zinc-900/50 light-mode:from-indigo-50 light-mode:to-white p-8 mb-8 border border-indigo-500/10 light-mode:border-indigo-200 shadow-2xl rounded-[2rem]"><p class="opacity-50 text-[11px] uppercase tracking-[0.2em] mb-1">Monthly Total Rev</p><h2 class="text-5xl font-black tracking-tighter text-important">${formatKRW(monthTotal)}<span class="text-xl ml-1 opacity-40 font-light">원</span></h2><div class="mt-8 flex flex-col"><span class="text-[11px] opacity-40 uppercase tracking-widest">오늘 일정</span><span class="text-3xl font-black text-indigo-500">${todayItems.length}건</span></div></div><h3 class="opacity-40 text-[11px] uppercase px-1 mb-4 tracking-[0.3em]">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-20 opacity-30 text-sm italic">기록이 없습니다.</p>'}</div>`;
             } else if(currentNav === 'list') {
-                const filtered = sortItemsByDateAsc(db.filter(it => it.note.toLowerCase().includes(searchTerm) || it.supplier.toLowerCase().includes(searchTerm)));
-                root.innerHTML = `<div class="animate-in fade-in duration-500 text-left px-5 text-white"><div class="py-4 text-left"><input type="text" placeholder="검색..." class="input-field w-full shadow-inner text-white text-left" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); render();"></div><h1 class="text-xl font-black mb-5 text-left text-white">전체 기록</h1>${filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic text-left text-white">기록이 없습니다.</p>`}</div>`;
+                const filtered = sortItemsByDateAsc(db.filter(it => (it.note||'').toLowerCase().includes(searchTerm) || (it.supplier||'').toLowerCase().includes(searchTerm)));
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 text-important"><div class="py-4"><input type="text" placeholder="검색..." class="input-field w-full shadow-inner" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); render();"></div><h1 class="text-xl font-black mb-5">전체 기록</h1>${filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic">기록이 없습니다.</p>`}</div>`;
             } else if(currentNav === 's_cal') { 
                 const mData = db.filter(x => x.date.startsWith(monthPrefix) && Number(x.amount) > 0);
                 const total = mData.reduce((a,b) => a + (Number(b.amount) || 0), 0), bySupp = mData.reduce((acc, c) => { const n = c.supplier || '미지정'; acc[n] = (acc[n]||0) + Number(c.amount); return acc; }, {});
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-left text-white"><div class="flex flex-col mb-10 text-left text-white text-white text-left text-white text-left text-white text-left text-white"><div class="flex flex-col mb-10 text-left text-white text-left text-white text-left text-white text-left text-white"><h2 class="text-2xl font-black text-white text-left text-white">${calContext.getMonth() + 1}월 매출 통계</h2><p class="text-[11px] opacity-40 uppercase tracking-[0.4em] mt-1 text-left text-white text-left text-white text-left text-white text-left text-white">${calContext.getFullYear()}</p></div><div class="grid grid-cols-2 gap-4 mb-12 text-left text-white text-left text-white text-left text-white"><div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl shadow-lg text-left text-white text-left text-white text-left text-white text-left text-white"><p class="text-[10px] opacity-50 uppercase font-bold mb-1 text-left text-white text-left text-white text-left text-white text-left text-white">Total Rev</p><p class="text-lg font-black text-indigo-400 text-left text-white text-left text-white text-left text-white text-left text-white">${formatKRW(total)}원</p></div><div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl shadow-lg text-left text-white text-left text-white text-left text-white text-left text-white"><p class="text-[10px] opacity-50 uppercase font-bold mb-1 text-left text-white text-left text-white text-left text-white text-left text-white">Count</p><p class="text-lg font-black text-white text-left text-white text-left text-white text-left text-white text-left text-white">${mData.length}건</p></div></div><h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-left text-white text-left text-white text-left text-white text-left text-white">거래처별 합계</h3><div class="bg-zinc-950 border border-white/5 overflow-hidden rounded-3xl light-mode:bg-white text-left text-white text-left text-white text-left text-white text-left text-white">${Object.entries(bySupp).sort((a,b)=>b[1]-a[1]).map(([n, v]) => `<div onclick="applyFilter('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 active:bg-indigo-500/10 text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white"><span class="font-bold text-[14px] text-left text-white text-left text-white text-left text-white">${n}</span><span class="font-black text-indigo-400 text-[16px] text-left text-white text-left text-white text-left text-white">${formatKRW(v)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white">내역 없음</p>'}</div></div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-important"><div class="flex flex-col mb-10"><h2 class="text-2xl font-black text-important">${calContext.getMonth() + 1}월 매출 통계</h2><p class="text-[11px] opacity-40 uppercase tracking-[0.4em] mt-1 text-important">${calContext.getFullYear()}</p></div><div class="grid grid-cols-2 gap-4 mb-12"><div class="p-6 bg-zinc-900/50 light-mode:bg-slate-50 border border-white/5 light-mode:border-slate-200 rounded-3xl shadow-lg"><p class="text-[10px] opacity-50 uppercase font-bold mb-1">Total Rev</p><p class="text-lg font-black text-indigo-500">${formatKRW(total)}원</p></div><div class="p-6 bg-zinc-900/50 light-mode:bg-slate-50 border border-white/5 light-mode:border-slate-200 rounded-3xl shadow-lg"><p class="text-[10px] opacity-50 uppercase font-bold mb-1">Count</p><p class="text-lg font-black text-important">${mData.length}건</p></div></div><h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-important">거래처별 합계</h3><div class="bg-zinc-950 light-mode:bg-white border border-white/5 light-mode:border-slate-200 overflow-hidden rounded-3xl">${Object.entries(bySupp).sort((a,b)=>b[1]-a[1]).map(([n, v]) => `<div onclick="applyFilter('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 light-mode:border-slate-100 active:bg-indigo-500/10"><span class="font-bold text-[14px] text-important">${n}</span><span class="font-black text-indigo-400 text-[16px]">${formatKRW(v)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm">내역 없음</p>'}</div></div>`;
             } else if(currentNav === 'e_cal') {
                 const y = calContext.getFullYear(), m = calContext.getMonth(), start = new Date(y, m, 1).getDay(), last = new Date(y, m + 1, 0).getDate();
                 let gridHtml = ''; let cells = [];
@@ -377,11 +376,11 @@
                     const isT = isV && todayStr === dateStr;
                     if (isV) {
                         const items = sortItemsByTime(db.filter(x => x.date === dateStr));
-                        let strips = items.map(it => `<div class="memo-strip text-left"><span class="strip-time text-left">${formatTimeDisplay(it.time)}</span> ${it.supplier !== "미지정" ? it.supplier : it.note.substring(0,8)}</div>`).join('');
+                        let strips = items.map(it => `<div class="memo-strip text-important"><span class="strip-time text-important">${formatTimeDisplay(it.time)}</span> ${it.supplier !== "미지정" ? it.supplier : it.note.substring(0,8)}</div>`).join('');
                         const holiday = holidays2026[`${mm}-${dd}`], dateColorClass = (i % 7 === 0 || (holiday && holiday.red)) ? 'sun' : (i % 7 === 6 ? 'sat' : '');
                         const holidayHtml = holiday ? `<span class="holiday-text ${holiday.red?'holiday-badge-red':'holiday-badge-indigo'} text-center">${holiday.name}</span>` : '';
-                        cells.push(`<div onclick="handleDateTouch('${dateStr}')" class="memo-cell ${isT ? 'is-today' : ''} ${selectedDate === dateStr ? 'is-selected' : ''} text-left text-left text-left text-white text-left text-white text-left text-white text-left text-white"><div class="date-header text-left text-white text-left text-white text-left text-white text-left text-white"><span class="date-num ${dateColorClass} text-left text-white text-left text-white text-left text-white text-left text-white">${dNum}</span>${holidayHtml}</div><div class="w-full text-left text-white text-left text-white text-left text-white text-left text-white">${strips}</div></div>`);
-                    } else cells.push(`<div class="memo-cell opacity-5 text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white"></div>`);
+                        cells.push(`<div onclick="handleDateTouch('${dateStr}')" class="memo-cell ${isT ? 'is-today' : ''} ${selectedDate === dateStr ? 'is-selected' : ''}"><div class="date-header"><span class="date-num ${dateColorClass}">${dNum}</span>${holidayHtml}</div><div class="w-full">${strips}</div></div>`);
+                    } else cells.push(`<div class="memo-cell opacity-5"></div>`);
                     if ((i + 1) % 7 === 0) {
                         gridHtml += cells.join('');
                         if (selectedDate) {
@@ -389,13 +388,13 @@
                             if (sY === y && sM === m + 1 && (sD + start - 1) >= i - 6 && (sD + start - 1) <= i) {
                                 const daily = sortItemsByTime(db.filter(x => x.date === selectedDate));
                                 const dow = ['일','월','화','수','목','금','토'][new Date(selectedDate).getDay()];
-                                gridHtml += `<div class="expansion-panel text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white"><div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3 opacity-60 text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white"><span class="text-[13px] font-black tracking-widest uppercase text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white">${String(sM).padStart(2,'0')}.${String(sD).padStart(2,'0')} (${dow}) 상세 일정</span><button onclick="handleDateTouch(null); event.stopPropagation();"><i data-lucide="x" class="w-5 h-5 text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white"></i></button></div><div class="space-y-2 text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white">${daily.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-10 opacity-30 text-sm italic text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white text-left text-white">일정이 없습니다.</p>'}</div></div>`;
+                                gridHtml += `<div class="expansion-panel"><div class="flex justify-between items-center mb-5 border-b border-white/5 light-mode:border-slate-300 pb-3 text-important"><span class="text-[16px] font-black tracking-widest uppercase">${String(sM).padStart(2,'0')}.${String(sD).padStart(2,'0')} (${dow}) 상세 일정</span><button onclick="handleDateTouch(null); event.stopPropagation();"><i data-lucide="x" class="w-6 h-6 text-important"></i></button></div><div class="space-y-2.5">${daily.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-10 opacity-30 text-sm italic">일정이 없습니다.</p>'}</div></div>`;
                             }
                         }
                         cells = [];
                     }
                 }
-                root.innerHTML = `<div ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)" class="animate-in fade-in duration-500 text-left px-0 text-white"><div class="flex justify-between items-end mb-6 px-5 text-white"><div class="flex items-end gap-3"><h2 class="text-5xl font-black tracking-tighter leading-none">${m + 1}월</h2><div class="flex flex-col mb-1"><span class="text-[10px] font-bold opacity-30 uppercase tracking-widest leading-none mb-1">${y}</span><span class="text-sm font-light opacity-30 italic leading-none">${monthNamesEn[m]}</span></div></div></div><div class="grid grid-cols-7 text-[11px] font-black text-center mb-3 opacity-40 text-white"><div class="text-center text-white">SUN</div><div class="text-center text-white">MON</div><div class="text-center text-white">TUE</div><div class="text-center text-white">WED</div><div class="text-center text-white">THU</div><div class="text-center text-white">FRI</div><div class="text-center text-white">SAT</div></div><div class="calendar-grid overflow-hidden border-b border-white/5 shadow-2xl text-white">${gridHtml}</div></div>`;
+                root.innerHTML = `<div ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)" class="animate-in fade-in duration-500"><div class="flex justify-between items-end mb-6 px-5"><div class="flex items-end gap-4"><h2 class="text-5xl font-black tracking-tighter leading-none text-important">${m + 1}월</h2><div class="flex flex-col mb-1"><span class="text-[14px] font-bold opacity-50 uppercase tracking-widest leading-none mb-1.5 text-important">${y}</span><span class="text-xl font-medium opacity-50 italic leading-none text-important">${monthNamesEn[m]}</span></div></div></div><div class="grid grid-cols-7 text-[13px] font-extrabold text-center mb-4 opacity-50 text-important"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div><div class="calendar-grid overflow-hidden border-b border-white/5 light-mode:border-slate-200 shadow-2xl">${gridHtml}</div></div>`;
             }
             lucide.createIcons();
         }
