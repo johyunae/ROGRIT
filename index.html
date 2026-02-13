@@ -8,12 +8,11 @@
     <meta name="apple-mobile-web-app-title" content="로그릿">
     <meta name="application-name" content="로그릿">
     
-    <!-- 사용자님이 업로드하신 icon.png를 앱 아이콘으로 연결 -->
+    <!-- 아이콘 설정 (GitHub에 업로드하신 icon.png와 연결) -->
     <link rel="icon" type="image/png" href="./icon.png">
     <link rel="apple-touch-icon" href="./icon.png">
     <link rel="shortcut icon" href="./icon.png">
     
-    <!-- PWA 매니페스트: 설치 시 이름과 아이콘 강제 적용 -->
     <link rel="manifest" href="data:application/manifest+json,{'name':'로그릿','short_name':'로그릿','start_url':'./index.html','display':'standalone','background_color':'#000000','theme_color':'#6366f1','icons':[{'src':'icon.png','sizes':'512x512','type':'image/png','purpose':'any maskable'}]}">
 
     <meta name="mobile-web-app-capable" content="yes">
@@ -35,7 +34,6 @@
             --calendar-border: rgba(203, 213, 225, 0.1); 
             --sun-color: #ff4d4d; 
             --sat-color: #4d94ff; 
-            --today-bg-glow: rgba(99, 102, 241, 0.35);
         }
 
         body.light-mode {
@@ -111,18 +109,29 @@
 </head>
 <body class="pb-40 no-scrollbar">
 
-    <!-- 상단 바 -->
-    <div class="fixed top-0 left-0 right-0 h-14 bg-black/95 backdrop-blur-xl flex items-center justify-between px-5 z-50 border-b border-white/5 light-mode:bg-white light-mode:border-black/5">
-        <div class="flex items-center gap-2 text-white text-left">
-            <div class="w-7 h-7 bg-indigo-600 flex items-center justify-center font-black text-lg rounded-sm">L</div>
+    <!-- 헤더 상단바 -->
+    <div class="fixed top-0 left-0 right-0 h-14 bg-black/95 backdrop-blur-xl flex items-center justify-between px-4 z-50 border-b border-white/5 light-mode:bg-white light-mode:border-black/5">
+        <!-- 왼쪽 로고 -->
+        <div class="flex items-center gap-2 text-white">
+            <div class="w-7 h-7 bg-indigo-600 flex items-center justify-center font-black text-lg rounded-sm shadow-sm">L</div>
             <div class="flex flex-col">
                 <span class="font-bold text-sm tracking-tighter">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V102 Final</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V106</span>
             </div>
         </div>
-        <button onclick="openSettings()" class="p-2 text-slate-400 hover:text-white transition-colors">
-            <i data-lucide="settings" class="w-5 h-5"></i>
-        </button>
+
+        <!-- 오른쪽 버튼 모음 -->
+        <div class="flex items-center gap-1.5">
+            <button onclick="toggleFullScreen()" class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center active:scale-90 transition-transform">
+                <i data-lucide="maximize" class="w-4 h-4 text-white"></i>
+            </button>
+            <button onclick="goToToday()" class="px-3 h-8 bg-indigo-600 text-[11px] font-bold text-white rounded-lg flex items-center justify-center active:scale-90 transition-transform">
+                오늘
+            </button>
+            <button onclick="openSettings()" class="w-8 h-8 flex items-center justify-center text-slate-400 active:text-white transition-colors">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+            </button>
+        </div>
     </div>
 
     <div id="app-view" class="w-full mx-auto pt-14 px-0 overflow-x-hidden"></div>
@@ -139,26 +148,26 @@
 
     <div id="toast">알림</div>
 
-    <!-- 입력 모달 -->
+    <!-- 활동 기록 모달 -->
     <div id="entry-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-end">
-        <div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 slide-up pb-12 overflow-y-auto max-h-[90vh] light-mode:bg-white text-left">
-            <div class="flex justify-between items-center mb-6 text-white text-left">
+        <div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 slide-up pb-12 overflow-y-auto max-h-[90vh] light-mode:bg-white text-left text-white">
+            <div class="flex justify-between items-center mb-6 text-left">
                 <h3 class="text-xl font-bold">활동 기록</h3>
                 <button onclick="closeEntryModal()" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <form id="record-form" class="space-y-4 text-left">
-                <input type="date" id="f-date" class="input-field text-white" required>
-                <div class="grid grid-cols-2 gap-3"><input type="text" id="f-departure" placeholder="출발지" class="input-field font-bold text-white"><input type="text" id="f-arrival" placeholder="도착지" class="input-field font-bold text-white"></div>
-                <div class="grid grid-cols-2 gap-3"><input type="text" id="f-time" placeholder="시간 (HHMM)" maxlength="5" inputmode="numeric" oninput="autoFormatTime(this)" class="input-field font-mono text-center text-lg text-white"><input type="number" id="f-people" placeholder="명" class="input-field font-bold text-white"></div>
-                <input type="text" id="f-supplier" placeholder="거래처명" class="input-field font-bold text-white">
+                <input type="date" id="f-date" class="input-field" required>
+                <div class="grid grid-cols-2 gap-3"><input type="text" id="f-departure" placeholder="출발지" class="input-field font-bold"><input type="text" id="f-arrival" placeholder="도착지" class="input-field font-bold"></div>
+                <div class="grid grid-cols-2 gap-3"><input type="text" id="f-time" placeholder="시간 (HHMM)" maxlength="5" inputmode="numeric" oninput="autoFormatTime(this)" class="input-field font-mono text-center text-lg"><input type="number" id="f-people" placeholder="명" class="input-field font-bold"></div>
+                <input type="text" id="f-supplier" placeholder="거래처명" class="input-field font-bold">
                 <div class="relative w-full">
-                    <input type="text" id="f-amount-display" placeholder="매출 금액" inputmode="numeric" oninput="handleAmountInput(this)" class="input-field font-bold text-xl pr-10 text-white">
+                    <input type="text" id="f-amount-display" placeholder="매출 금액" inputmode="numeric" oninput="handleAmountInput(this)" class="input-field font-bold text-xl pr-10">
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 opacity-40 font-bold">원</span>
                 </div>
-                <textarea id="f-note" placeholder="상세 메모" class="input-field memo-field resize-none text-white" oninput="autoResize(this)"></textarea>
+                <textarea id="f-note" placeholder="상세 메모" class="input-field memo-field resize-none" oninput="autoResize(this)"></textarea>
                 <div class="flex gap-3 mt-6">
-                    <button type="button" id="delete-btn" onclick="deleteItemDirect()" class="hidden flex-1 bg-red-950/30 text-red-500 py-3.5 border border-red-900/30 rounded-xl font-bold">삭제</button>
-                    <button type="submit" class="flex-[2] btn-primary">저장 완료</button>
+                    <button type="button" id="delete-btn" onclick="deleteItemDirect()" class="hidden flex-1 bg-red-950/30 text-red-500 py-3.5 border border-red-900/30 rounded-xl font-bold text-center">삭제</button>
+                    <button type="submit" class="flex-[2] btn-primary text-center">저장 완료</button>
                 </div>
             </form>
         </div>
@@ -173,18 +182,19 @@
                     <span class="text-sm font-bold">화이트 모드</span>
                     <button onclick="toggleTheme()" class="w-11 h-6 bg-zinc-700 rounded-full relative transition-colors"><div id="toggle-dot" class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform"></div></button>
                 </div>
-                <div class="pt-4 border-t border-white/10 space-y-4">
-                    <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest text-center">Data Storage</p>
+                <div class="pt-4 border-t border-white/10 space-y-4 text-left">
+                    <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest text-center">Data Backup</p>
                     <button onclick="exportData()" class="w-full py-4 bg-zinc-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> 백업 파일 만들기</button>
                     <button onclick="document.getElementById('file-input').click()" class="w-full py-4 bg-zinc-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-colors"><i data-lucide="upload" class="w-4 h-4"></i> 백업 불러오기</button>
                     <input type="file" id="file-input" class="hidden" accept=".json" onchange="importFile(event)">
+                    <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();closeSettings();}" class="w-full py-2 text-[10px] text-red-500 opacity-60 text-center">전체 데이터 초기화</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'logrit_v102_master_storage';
+        const STORAGE_KEY = 'logrit_v106_master_storage';
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         let isLightMode = JSON.parse(localStorage.getItem('theme_is_light') || 'false');
         
@@ -236,7 +246,7 @@
         window.toggleTheme = () => { isLightMode = !isLightMode; applyTheme(); render(); };
         window.navTo = (nav) => { currentNav = nav; selectedDate = null; searchTerm = ""; render(); };
         window.moveMonth = (v) => { calContext.setMonth(calContext.getMonth() + v); selectedDate = null; render(); };
-        window.goToToday = () => { calContext = new Date(); selectedDate = null; currentNav = 'e_cal'; render(); };
+        window.goToToday = () => { calContext = new Date(); selectedDate = null; currentNav = 'e_cal'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
         window.openSettings = () => document.getElementById('settings-modal').classList.remove('hidden');
         window.closeSettings = () => document.getElementById('settings-modal').classList.add('hidden');
 
@@ -308,20 +318,20 @@
 
         function renderItemCard(item, showDate = false, hideAmount = false) {
             return `
-                <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-3xl border border-white/5 mb-2 active:opacity-60 text-left light-mode:bg-white light-mode:border-slate-200 shadow-sm text-left">
-                    <div class="flex justify-between items-center pb-2 mb-2 border-b border-white/5 opacity-80 text-left text-white">
-                        <div class="flex items-center gap-2 text-indigo-400 font-bold text-[13px] uppercase text-left">
-                            ${showDate ? `<span class="px-2 py-0.5 rounded bg-indigo-500/10 text-left">${item.date.split('-').slice(1).join('.')}</span>` : ''}
-                            <span class="font-mono text-left">${formatTimeDisplay(item.time) || '--시'}</span>
+                <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-3xl border border-white/5 mb-2 active:opacity-60 text-left light-mode:bg-white light-mode:border-slate-200 shadow-sm">
+                    <div class="flex justify-between items-center pb-2 mb-2 border-b border-white/5 opacity-80 text-left">
+                        <div class="flex items-center gap-2 text-indigo-400 font-bold text-[13px] uppercase">
+                            ${showDate ? `<span class="px-2 py-0.5 rounded bg-indigo-500/10">${item.date.split('-').slice(1).join('.')}</span>` : ''}
+                            <span class="font-mono">${formatTimeDisplay(item.time) || '--시'}</span>
                         </div>
                         <i data-lucide="chevron-right" class="w-4 h-4 opacity-30"></i>
                     </div>
-                    <div class="space-y-2 text-left">
-                        <p class="text-[16px] font-bold text-white leading-tight text-left">${item.note || '내용 없음'}</p>
+                    <div class="space-y-2">
+                        <p class="text-[16px] font-bold text-white leading-tight">${item.note || '내용 없음'}</p>
                         ${(item.departure || item.arrival) ? `<div class="text-[13px] opacity-70 bg-slate-900/40 p-2 rounded-xl border border-white/5 text-white"><span>${item.departure || '..'} → ${item.arrival || '..'}</span></div>` : ''}
-                        ${(item.people > 0) ? `<div class="text-[12px] font-bold text-indigo-400 px-1 text-left">인원: ${item.people}명</div>` : ''}
-                        <div class="flex justify-between items-center pt-2 mt-1 text-left">
-                            <span class="text-[12px] font-bold text-slate-500 uppercase tracking-tighter text-left">${item.supplier || '미지정'}</span>
+                        ${(item.people > 0) ? `<div class="text-[12px] font-bold text-indigo-400 px-1">인원: ${item.people}명</div>` : ''}
+                        <div class="flex justify-between items-center pt-2 mt-1">
+                            <span class="text-[12px] font-bold text-slate-500 uppercase tracking-tighter">${item.supplier || '미지정'}</span>
                             ${(!hideAmount && item.amount > 0) ? `<p class="text-[18px] font-black text-[#cbd5e1] tracking-tighter text-right">💰 ${formatKRW(item.amount)}원</p>` : ''}
                         </div>
                     </div>
@@ -338,14 +348,14 @@
             if(currentNav === 'home') {
                 const todayItems = sortItemsByTime(db.filter(x => x.date === todayStr));
                 const monthTotal = db.filter(x => x.date.startsWith(monthPrefix)).reduce((acc, cur) => acc + (Number(cur.amount) || 0), 0);
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-left text-white text-left text-left"><div class="bg-gradient-to-br from-indigo-950/20 to-black p-8 mb-8 border border-indigo-500/10 shadow-2xl rounded-[2rem] text-left text-left"><p class="opacity-50 text-[11px] uppercase tracking-[0.2em] mb-1 text-left text-left text-white">Monthly Total Rev</p><h2 class="text-5xl font-black text-white tracking-tighter text-left text-left">${formatKRW(monthTotal)}<span class="text-xl ml-1 opacity-40 font-light">원</span></h2><div class="mt-8 flex flex-col text-left text-left"><span class="text-[11px] opacity-40 uppercase tracking-widest text-left text-left text-white">오늘 일정</span><span class="text-3xl font-black text-indigo-400 text-left text-left">${todayItems.length}건</span></div></div><h3 class="opacity-40 text-[11px] uppercase px-1 mb-4 tracking-[0.3em] text-left text-left text-left text-white">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-20 opacity-30 text-sm italic text-left text-left text-white">기록이 없습니다.</p>'}</div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-left text-white"><div class="bg-gradient-to-br from-indigo-950/20 to-black p-8 mb-8 border border-indigo-500/10 shadow-2xl rounded-[2rem]"><p class="opacity-50 text-[11px] uppercase tracking-[0.2em] mb-1 text-white">Monthly Total Rev</p><h2 class="text-5xl font-black text-white tracking-tighter">${formatKRW(monthTotal)}<span class="text-xl ml-1 opacity-40 font-light">원</span></h2><div class="mt-8 flex flex-col"><span class="text-[11px] opacity-40 uppercase tracking-widest text-white">오늘 일정</span><span class="text-3xl font-black text-indigo-400">${todayItems.length}건</span></div></div><h3 class="opacity-40 text-[11px] uppercase px-1 mb-4 tracking-[0.3em] text-white">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-20 opacity-30 text-sm italic">기록이 없습니다.</p>'}</div>`;
             } else if(currentNav === 'list') {
                 const filtered = sortItemsByDateAsc(db.filter(it => it.note.toLowerCase().includes(searchTerm) || it.supplier.toLowerCase().includes(searchTerm)));
-                root.innerHTML = `<div class="animate-in fade-in duration-500 text-left px-5 text-white text-left text-left text-left"><div class="py-4 text-left text-left text-left text-left"><input type="text" placeholder="검색..." class="input-field w-full shadow-inner text-white text-left text-left" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); render();"></div><h1 class="text-xl font-black mb-5 text-left text-left text-left text-white">전체 기록</h1>${filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic text-left text-left text-white">기록이 없습니다.</p>`}</div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 text-left px-5 text-white"><div class="py-4"><input type="text" placeholder="검색..." class="input-field w-full shadow-inner text-white" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); render();"></div><h1 class="text-xl font-black mb-5">전체 기록</h1>${filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic">기록이 없습니다.</p>`}</div>`;
             } else if(currentNav === 's_cal') { 
                 const mData = db.filter(x => x.date.startsWith(monthPrefix) && Number(x.amount) > 0);
                 const total = mData.reduce((a,b) => a + (Number(b.amount) || 0), 0), bySupp = mData.reduce((acc, c) => { const n = c.supplier || '미지정'; acc[n] = (acc[n]||0) + Number(c.amount); return acc; }, {});
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-left text-white text-left text-left text-left"><div class="flex flex-col mb-10 text-left text-left text-left text-left text-white"><h2 class="text-2xl font-black text-left text-left text-left">${calContext.getMonth() + 1}월 매출 통계</h2><p class="text-[11px] opacity-40 uppercase tracking-[0.4em] mt-1 text-left text-left text-left">${calContext.getFullYear()}</p></div><div class="grid grid-cols-2 gap-4 mb-12 text-left text-left text-left"><div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl shadow-lg text-left text-left text-left text-white"><p class="text-[10px] opacity-50 uppercase font-bold mb-1 text-left text-left text-white">Total Rev</p><p class="text-lg font-black text-indigo-400 text-left text-left">${formatKRW(total)}원</p></div><div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl shadow-lg text-left text-left text-left text-white"><p class="text-[10px] opacity-50 uppercase font-bold mb-1 text-left text-left text-white">Count</p><p class="text-lg font-black text-white text-left text-left">${mData.length}건</p></div></div><h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-left text-left text-left text-left text-white">거래처별 합계</h3><div class="bg-zinc-950 border border-white/5 overflow-hidden rounded-3xl light-mode:bg-white text-left text-left">${Object.entries(bySupp).sort((a,b)=>b[1]-a[1]).map(([n, v]) => `<div onclick="applyFilter('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 active:bg-indigo-500/10 text-left text-left text-left text-left text-left text-white"><span class="font-bold text-[14px] text-left text-left">${n}</span><span class="font-black text-indigo-400 text-[16px] text-left text-left">${formatKRW(v)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm text-left text-left text-left text-white">내역 없음</p>'}</div></div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-left text-white"><div class="flex flex-col mb-10 text-left text-white"><h2 class="text-2xl font-black text-white">${calContext.getMonth() + 1}월 매출 통계</h2><p class="text-[11px] opacity-40 uppercase tracking-[0.4em] mt-1 text-white">${calContext.getFullYear()}</p></div><div class="grid grid-cols-2 gap-4 mb-12 text-left"><div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl shadow-lg text-white"><p class="text-[10px] opacity-50 uppercase font-bold mb-1">Total Rev</p><p class="text-lg font-black text-indigo-400">${formatKRW(total)}원</p></div><div class="p-6 bg-zinc-900/50 border border-white/5 rounded-3xl shadow-lg text-white"><p class="text-[10px] opacity-50 uppercase font-bold mb-1">Count</p><p class="text-lg font-black text-white">${mData.length}건</p></div></div><h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-white">거래처별 합계</h3><div class="bg-zinc-950 border border-white/5 overflow-hidden rounded-3xl light-mode:bg-white text-white">${Object.entries(bySupp).sort((a,b)=>b[1]-a[1]).map(([n, v]) => `<div onclick="applyFilter('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 active:bg-indigo-500/10"><span class="font-bold text-[14px] text-white text-left">${n}</span><span class="font-black text-indigo-400 text-[16px]">${formatKRW(v)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm">내역 없음</p>'}</div></div>`;
             } else if(currentNav === 'e_cal') {
                 const y = calContext.getFullYear(), m = calContext.getMonth(), start = new Date(y, m, 1).getDay(), last = new Date(y, m + 1, 0).getDate();
                 let gridHtml = ''; let cells = [];
@@ -354,11 +364,11 @@
                     const isT = isV && todayStr === dateStr;
                     if (isV) {
                         const items = sortItemsByTime(db.filter(x => x.date === dateStr));
-                        let strips = items.map(it => `<div class="memo-strip text-left"><span class="strip-time text-left">${formatTimeDisplay(it.time)}</span> ${it.supplier !== "미지정" ? it.supplier : it.note.substring(0,8)}</div>`).join('');
+                        let strips = items.map(it => `<div class="memo-strip text-left"><span class="strip-time">${formatTimeDisplay(it.time)}</span> ${it.supplier !== "미지정" ? it.supplier : it.note.substring(0,8)}</div>`).join('');
                         const holiday = holidays2026[`${mm}-${dd}`], dateColorClass = (i % 7 === 0 || (holiday && holiday.red)) ? 'sun' : (i % 7 === 6 ? 'sat' : '');
                         const holidayHtml = holiday ? `<span class="holiday-text ${holiday.red?'holiday-badge-red':'holiday-badge-indigo'} text-center">${holiday.name}</span>` : '';
-                        cells.push(`<div onclick="handleDateTouch('${dateStr}')" class="memo-cell ${isT ? 'is-today' : ''} ${selectedDate === dateStr ? 'is-selected' : ''} text-left text-left text-left"><div class="date-header text-left text-left text-left text-white"><span class="date-num ${dateColorClass} text-left text-left text-left">${dNum}</span>${holidayHtml}</div><div class="w-full text-left text-left text-left">${strips}</div></div>`);
-                    } else cells.push(`<div class="memo-cell opacity-5 text-left text-left text-left"></div>`);
+                        cells.push(`<div onclick="handleDateTouch('${dateStr}')" class="memo-cell ${isT ? 'is-today' : ''} ${selectedDate === dateStr ? 'is-selected' : ''} text-left"><div class="date-header text-white"><span class="date-num ${dateColorClass}">${dNum}</span>${holidayHtml}</div><div class="w-full">${strips}</div></div>`);
+                    } else cells.push(`<div class="memo-cell opacity-5 text-left"></div>`);
                     if ((i + 1) % 7 === 0) {
                         gridHtml += cells.join('');
                         if (selectedDate) {
@@ -366,13 +376,13 @@
                             if (sY === y && sM === m + 1 && (sD + start - 1) >= i - 6 && (sD + start - 1) <= i) {
                                 const daily = sortItemsByTime(db.filter(x => x.date === selectedDate));
                                 const dow = ['일','월','화','수','목','금','토'][new Date(selectedDate).getDay()];
-                                gridHtml += `<div class="expansion-panel text-left text-left text-left text-left text-white"><div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3 opacity-60 text-left text-left text-left text-left text-white text-left"><span class="text-[13px] font-black tracking-widest uppercase text-left text-left text-left">${String(sM).padStart(2,'0')}.${String(sD).padStart(2,'0')} (${dow}) 상세 일정</span><button onclick="handleDateTouch(null); event.stopPropagation();"><i data-lucide="x" class="w-5 h-5 text-white text-left text-left text-left"></i></button></div><div class="space-y-2 text-left text-left text-left text-left text-white text-left">${daily.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-10 opacity-30 text-sm italic text-left text-left text-left text-white">일정이 없습니다.</p>'}</div></div>`;
+                                gridHtml += `<div class="expansion-panel text-white text-left"><div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3 opacity-60 text-white"><span class="text-[13px] font-black tracking-widest uppercase">${String(sM).padStart(2,'0')}.${String(sD).padStart(2,'0')} (${dow}) 상세 일정</span><button onclick="handleDateTouch(null); event.stopPropagation();"><i data-lucide="x" class="w-5 h-5 text-white"></i></button></div><div class="space-y-2 text-white">${daily.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-10 opacity-30 text-sm italic">일정이 없습니다.</p>'}</div></div>`;
                             }
                         }
                         cells = [];
                     }
                 }
-                root.innerHTML = `<div ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)" class="animate-in fade-in duration-500 text-left px-0 text-left text-white text-left text-left text-left text-left text-left text-left text-left"><div class="flex justify-between items-end mb-8 px-5 text-left text-white text-left text-left text-left"><div class="flex flex-col text-left text-left text-left text-left text-white"><h2 class="text-5xl font-black tracking-tighter text-left text-left text-left">${m + 1}월 <span class="text-xl font-light opacity-30 ml-1 italic text-left text-left text-left">${monthNamesEn[m]}</span></h2><p class="text-[11px] opacity-30 uppercase tracking-[0.4em] mt-1 text-left text-left text-left">${y}</p></div><div class="flex gap-2 text-left text-left text-left text-left"><button onclick="toggleFullScreen()" class="px-3 py-2.5 bg-zinc-900 border border-white/10 text-white rounded-2xl flex items-center justify-center active:scale-95 text-left text-left text-left text-left text-white"><i data-lucide="maximize" class="w-4 h-4 text-left text-left text-left text-white"></i></button><button onclick="goToToday()" class="px-6 py-2.5 bg-zinc-900 border border-white/10 text-xs font-bold text-white rounded-2xl light-mode:bg-slate-100 text-left text-left text-left text-left">오늘</button></div></div><div class="grid grid-cols-7 text-[11px] font-black text-center mb-3 opacity-40 text-white text-left text-left text-left text-left text-left text-white"><div class="text-center">SUN</div><div class="text-center text-left text-left text-left text-left">MON</div><div class="text-center text-left text-left text-left text-left">TUE</div><div class="text-center text-left text-left text-left text-left text-left text-left text-left text-white">WED</div><div class="text-center text-left text-left text-left text-left">THU</div><div class="text-center text-left text-left text-left text-left">FRI</div><div class="text-center text-left text-left text-left">SAT</div></div><div class="calendar-grid overflow-hidden border-b border-white/5 shadow-2xl text-left text-left text-left text-left text-white">${gridHtml}</div></div>`;
+                root.innerHTML = `<div ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)" class="animate-in fade-in duration-500 text-left px-0 text-white"><div class="flex justify-between items-end mb-8 px-5 text-white"><div class="flex flex-col text-white"><h2 class="text-5xl font-black tracking-tighter">${m + 1}월 <span class="text-xl font-light opacity-30 ml-1 italic">${monthNamesEn[m]}</span></h2><p class="text-[11px] opacity-30 uppercase tracking-[0.4em] mt-1">${y}</p></div></div><div class="grid grid-cols-7 text-[11px] font-black text-center mb-3 opacity-40 text-white"><div class="text-center text-white">SUN</div><div class="text-center text-white">MON</div><div class="text-center text-white">TUE</div><div class="text-center text-white">WED</div><div class="text-center text-white">THU</div><div class="text-center text-white">FRI</div><div class="text-center text-white">SAT</div></div><div class="calendar-grid overflow-hidden border-b border-white/5 shadow-2xl text-white">${gridHtml}</div></div>`;
             }
             lucide.createIcons();
         }
