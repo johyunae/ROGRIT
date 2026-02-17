@@ -8,12 +8,13 @@
     <meta name="apple-mobile-web-app-title" content="로그릿">
     <meta name="application-name" content="로그릿">
     
-    <!-- 아이콘 설정 (GitHub icon.png 연결) -->
+    <!-- 아이콘 설정 -->
     <link rel="icon" type="image/png" href="./icon.png">
     <link rel="apple-touch-icon" href="./icon.png">
     <link rel="shortcut icon" href="./icon.png">
     
-    <link rel="manifest" href="data:application/manifest+json,{'name':'로그릿','short_name':'로그릿','start_url':'./index.html','display':'standalone','background_color':'#000000','theme_color':'#6366f1','icons':[{'src':'icon.png','sizes':'512x512','type':'image/png','purpose':'any maskable'}]}">
+    <!-- PWABuilder 에러 해결을 위한 보강된 매니페스트 설정 -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"로그릿","short_name":"로그릿","description":"매출장부와 스케줄을 하나로 합친 효율적인 관리 프로그램","start_url":"./index.html","display":"standalone","background_color":"#000000","theme_color":"#6366f1","icons":[{"src":"icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -46,7 +47,7 @@
             --border-color: #e2e8f0;
             --brand-color: #4f46e5;
             --calendar-border: #e2e8f0;
-            --sun-color: #dc2626;
+            --sun-color: #e11d48;
             --sat-color: #2563eb;
             --badge-bg: #f1f5f9; 
         }
@@ -59,13 +60,14 @@
             user-select: none;
             overscroll-behavior-y: contain;
             letter-spacing: -0.05em; margin: 0; padding: 0;
+            text-align: left;
         }
 
         span, p, h1, h2, h3, div, label, input, textarea { color: inherit; text-align: left; }
         .text-important { color: var(--text-bold) !important; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 0.5px solid var(--calendar-border); width: 100vw; margin: 0; }
-        .memo-cell { min-height: 105px; background-color: var(--bg-color); display: flex; flex-direction: column; padding: 0; position: relative; cursor: pointer; border-right: 0.5px solid var(--calendar-border); border-bottom: 0.5px solid var(--calendar-border); overflow: hidden; }
+        .memo-cell { min-height: 105px; background-color: var(--bg-color); display: flex; flex-direction: column; padding: 0; position: relative; cursor: pointer; border-right: 0.5px solid var(--calendar-border); border-bottom: 0.5px solid var(--calendar-border); overflow: hidden; transition: background-color 0.1s; }
         .memo-cell.is-selected { box-shadow: inset 0 0 0 2.5px var(--brand-color) !important; z-index: 10; }
         .memo-cell:nth-child(7n) { border-right: none; }
         
@@ -79,11 +81,7 @@
             box-shadow: 0 0 12px rgba(99, 102, 241, 0.5);
         }
 
-        .holiday-text { 
-            font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px;
-            letter-spacing: -0.06em; margin-top: -6px; text-align: center; width: fit-content; 
-            white-space: nowrap; line-height: 1; z-index: 4; display: inline-block;
-        }
+        .holiday-text { font-size: 8px; font-weight: 800; padding: 1px 4px; border-radius: 4px; letter-spacing: -0.06em; margin-top: -6px; text-align: center; width: fit-content; white-space: nowrap; line-height: 1; z-index: 4; display: inline-block; }
         .holiday-badge-red { background-color: rgba(255, 77, 77, 0.15); color: var(--sun-color) !important; }
         .holiday-badge-indigo { background-color: rgba(99, 102, 241, 0.15); color: var(--brand-color) !important; }
 
@@ -117,7 +115,7 @@
             <div class="w-7 h-7 bg-indigo-600 flex items-center justify-center text-white font-black text-lg rounded-sm shadow-sm">L</div>
             <div class="flex flex-col">
                 <span class="font-bold text-sm tracking-tighter text-important">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V112</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V128 Store Ready</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -133,15 +131,15 @@
         </div>
     </div>
 
-    <!-- 앱 뷰 본문 -->
+    <!-- 메인 뷰 -->
     <div id="app-view" class="w-full mx-auto pt-14 px-0 overflow-x-hidden"></div>
 
-    <!-- 하단 네비게이션 -->
+    <!-- 하단 메뉴 -->
     <nav id="bottom-nav" class="fixed bottom-6 left-4 right-4 max-w-[calc(100%-2rem)] mx-auto bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 h-16 flex justify-around items-center z-40 rounded-[2.5rem] shadow-2xl px-1 light-mode:bg-white/95 light-mode:border-slate-200">
-        <button onclick="navTo('e_cal')" id="nav-e_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="calendar" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">일정</span></button>
-        <button onclick="navTo('list')" id="nav-list" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">기록</span></button>
-        <button onclick="navTo('s_cal')" id="nav-s_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="trending-up" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">매출</span></button>
-        <button onclick="navTo('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="layout-grid" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">홈</span></button>
+        <button onclick="navTo('e_cal')" id="nav-e_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="calendar" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold text-slate-400">일정</span></button>
+        <button onclick="navTo('list')" id="nav-list" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold text-slate-400">기록</span></button>
+        <button onclick="navTo('s_cal')" id="nav-s_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="trending-up" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold text-slate-400">매출</span></button>
+        <button onclick="navTo('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="layout-grid" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold text-slate-400">홈</span></button>
     </nav>
 
     <button id="btn-top" onclick="scrollToTop()"><i data-lucide="chevron-up" class="w-6 h-6"></i></button>
@@ -150,8 +148,8 @@
     <div id="toast">알림</div>
 
     <!-- 입력 모달 -->
-    <div id="entry-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-end text-left">
-        <div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 slide-up pb-12 overflow-y-auto max-h-[90vh] light-mode:bg-white">
+    <div id="entry-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-end">
+        <div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 slide-up pb-12 overflow-y-auto max-h-[90vh] light-mode:bg-white text-left">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold text-important">활동 기록</h3>
                 <button onclick="closeEntryModal()" class="p-2 bg-zinc-800 light-mode:bg-slate-100 rounded-full text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
@@ -177,28 +175,28 @@
     <!-- 설정 모달 -->
     <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6 text-left">
         <div class="bg-zinc-900 w-full max-w-sm rounded-3xl p-7 border border-white/10 shadow-2xl overflow-y-auto max-h-[85vh] light-mode:bg-white light-mode:border-slate-200 text-left">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="text-xl font-bold text-important">시스템 설정</h3>
-                <button onclick="closeSettings()" class="text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="flex justify-between items-center mb-8 text-left">
+                <h3 class="text-xl font-bold text-important text-left">시스템 설정</h3>
+                <button onclick="closeSettings()" class="text-slate-400 text-left"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <div class="space-y-6">
-                <div class="flex justify-between items-center bg-white/5 light-mode:bg-slate-100 p-4 rounded-xl">
-                    <span class="text-sm font-bold text-important">화이트 모드</span>
-                    <button onclick="toggleTheme()" class="w-11 h-6 bg-zinc-700 light-mode:bg-slate-300 rounded-full relative transition-colors"><div id="toggle-dot" class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform"></div></button>
+            <div class="space-y-6 text-left">
+                <div class="flex justify-between items-center bg-white/5 light-mode:bg-slate-100 p-4 rounded-xl text-left">
+                    <span class="text-sm font-bold text-important text-left">화이트 모드</span>
+                    <button onclick="toggleTheme()" class="w-11 h-6 bg-zinc-700 light-mode:bg-slate-300 rounded-full relative transition-colors text-left"><div id="toggle-dot" class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform"></div></button>
                 </div>
-                <div class="pt-4 border-t border-white/10 light-mode:border-slate-200 space-y-4">
-                    <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest text-center">Data Storage</p>
-                    <button onclick="exportData()" class="w-full py-4 bg-zinc-800 light-mode:bg-slate-100 rounded-xl text-xs font-bold text-important flex items-center justify-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> 백업 파일 만들기</button>
-                    <button onclick="document.getElementById('file-input').click()" class="w-full py-4 bg-zinc-700 light-mode:bg-slate-200 rounded-xl text-xs font-bold text-important flex items-center justify-center gap-2"><i data-lucide="upload" class="w-4 h-4"></i> 백업 불러오기</button>
+                <div class="pt-4 border-t border-white/10 light-mode:border-slate-200 space-y-4 text-left">
+                    <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest text-center text-left">Data Storage</p>
+                    <button onclick="exportData()" class="w-full py-4 bg-zinc-800 light-mode:bg-slate-100 rounded-xl text-xs font-bold text-important flex items-center justify-center gap-2 text-left"><i data-lucide="download" class="w-4 h-4"></i> 백업 파일 만들기</button>
+                    <button onclick="document.getElementById('file-input').click()" class="w-full py-4 bg-zinc-700 light-mode:bg-slate-200 rounded-xl text-xs font-bold text-important flex items-center justify-center gap-2 text-left"><i data-lucide="upload" class="w-4 h-4"></i> 백업 불러오기</button>
                     <input type="file" id="file-input" class="hidden" accept=".json" onchange="importFile(event)">
-                    <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();closeSettings();}" class="w-full py-2 text-[10px] text-red-500 opacity-60 text-center">전체 데이터 초기화</button>
+                    <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();closeSettings();}" class="w-full py-2 text-[10px] text-red-500 opacity-60 text-center text-left">전체 데이터 초기화</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const STORAGE_KEY = 'logrit_v112_master_storage';
+        const STORAGE_KEY = 'logrit_v128_master_storage';
         let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
         let isLightMode = JSON.parse(localStorage.getItem('theme_is_light') || 'false');
         
@@ -226,19 +224,9 @@
         function handleScroll() { const btn = document.getElementById('btn-top'); if (window.scrollY > 400) btn.classList.add('visible'); else btn.classList.remove('visible'); }
         window.scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        window.showToast = (msg) => {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.classList.add('visible');
-            setTimeout(() => t.classList.remove('visible'), 2500);
-        };
+        window.showToast = (msg) => { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 2500); };
 
-        window.toggleFullScreen = () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => showToast("전체화면 권한이 없습니다."));
-            } else {
-                document.exitFullscreen();
-            }
-        };
+        window.toggleFullScreen = () => { if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => showToast("전체화면 권한이 없습니다.")); } else { document.exitFullscreen(); } };
 
         function applyTheme() {
             const body = document.body, dot = document.getElementById('toggle-dot');
@@ -255,87 +243,37 @@
         window.closeSettings = () => document.getElementById('settings-modal').classList.add('hidden');
 
         window.handleTouchStart = (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; };
-        window.handleTouchEnd = (e) => {
-            const diffX = startX - e.changedTouches[0].clientX;
-            const diffY = startY - e.changedTouches[0].clientY;
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 90) { if (diffX > 0) moveMonth(1); else moveMonth(-1); }
-        };
+        window.handleTouchEnd = (e) => { const diffX = startX - e.changedTouches[0].clientX; const diffY = startY - e.changedTouches[0].clientY; if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 90) { if (diffX > 0) moveMonth(1); else moveMonth(-1); } };
 
-        window.exportData = () => { 
-            const dataStr = JSON.stringify(db, null, 2); 
-            const blob = new Blob([dataStr], { type: 'application/json' }); 
-            const url = URL.createObjectURL(blob); 
-            const link = document.createElement('a'); link.href = url; link.download = `logrit_backup.json`; link.click(); URL.revokeObjectURL(url);
-            showToast("✅ 백업 파일이 생성되었습니다.");
-        };
+        window.exportData = () => { const dataStr = JSON.stringify(db, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = `logrit_backup.json`; link.click(); URL.revokeObjectURL(url); showToast("✅ 백업 파일이 생성되었습니다."); };
 
-        window.importFile = (event) => { 
-            const file = event.target.files[0]; if (!file) return; 
-            const reader = new FileReader(); 
-            reader.onload = (e) => { 
-                try { 
-                    const imported = JSON.parse(e.target.result); db = Array.isArray(imported) ? imported : (imported.records || []); 
-                    sync(); showToast("📊 데이터가 복구되었습니다."); closeSettings(); 
-                } catch(err) { showToast("❌ 파일 형식 오류"); } 
-            }; 
-            reader.readAsText(file); 
-        };
+        window.importFile = (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const imported = JSON.parse(e.target.result); db = Array.isArray(imported) ? imported : (imported.records || []); sync(); showToast("📊 데이터가 복구되었습니다."); closeSettings(); } catch(err) { showToast("❌ 파일 형식 오류"); } }; reader.readAsText(file); };
 
-        window.handleDateTouch = (dateStr) => {
-            if (selectedDate === dateStr) { selectedDate = null; render(); }
-            else { 
-                selectedDate = dateStr; render();
-                setTimeout(() => {
-                    const panel = document.querySelector('.expansion-panel');
-                    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
-            }
-        };
+        window.handleDateTouch = (dateStr) => { if (selectedDate === dateStr) { selectedDate = null; render(); } else { selectedDate = dateStr; render(); setTimeout(() => { const panel = document.querySelector('.expansion-panel'); if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); } };
 
-        window.openEntryModal = (id = null) => {
-            currentEditId = id ? String(id) : null;
-            const modal = document.getElementById('entry-modal'), delBtn = document.getElementById('delete-btn'), noteArea = document.getElementById('f-note');
-            modal.classList.remove('hidden'); 
-            if(currentEditId) {
-                const it = db.find(x => String(x.id) === currentEditId);
-                if(it) {
-                  document.getElementById('f-date').value = it.date; document.getElementById('f-supplier').value = it.supplier || ""; 
-                  document.getElementById('f-amount-display').value = it.amount ? Number(it.amount).toLocaleString() : '';
-                  noteArea.value = it.note || ''; document.getElementById('f-time').value = it.time || ''; document.getElementById('f-departure').value = it.departure || ''; document.getElementById('f-arrival').value = it.arrival || ''; document.getElementById('f-people').value = it.people || ''; delBtn.classList.remove('hidden');
-                }
-                setTimeout(() => autoResize(noteArea), 50);
-            } else {
-                document.getElementById('record-form').reset(); document.getElementById('f-date').value = selectedDate || getLocalToday(); document.getElementById('f-amount-display').value = ''; delBtn.classList.add('hidden'); noteArea.style.height = 'auto';
-            }
-        };
+        window.openEntryModal = (id = null) => { currentEditId = id ? String(id) : null; const modal = document.getElementById('entry-modal'), delBtn = document.getElementById('delete-btn'), noteArea = document.getElementById('f-note'); modal.classList.remove('hidden'); if(currentEditId) { const it = db.find(x => String(x.id) === currentEditId); if(it) { document.getElementById('f-date').value = it.date; document.getElementById('f-supplier').value = it.supplier || ""; document.getElementById('f-amount-display').value = it.amount ? Number(it.amount).toLocaleString() : ''; noteArea.value = it.note || ''; document.getElementById('f-time').value = it.time || ''; document.getElementById('f-departure').value = it.departure || ''; document.getElementById('f-arrival').value = it.arrival || ''; document.getElementById('f-people').value = it.people || ''; delBtn.classList.remove('hidden'); } setTimeout(() => autoResize(noteArea), 50); } else { document.getElementById('record-form').reset(); document.getElementById('f-date').value = selectedDate || getLocalToday(); document.getElementById('f-amount-display').value = ''; delBtn.classList.add('hidden'); noteArea.style.height = 'auto'; } };
 
         window.closeEntryModal = () => document.getElementById('entry-modal').classList.add('hidden');
-        document.getElementById('record-form').onsubmit = (e) => {
-            e.preventDefault();
-            const rawAmount = document.getElementById('f-amount-display').value.replace(/[^0-9]/g, '');
-            const record = { id: currentEditId || String(Date.now()), date: document.getElementById('f-date').value, amount: parseInt(rawAmount || 0), supplier: document.getElementById('f-supplier').value || "미지정", note: document.getElementById('f-note').value, time: document.getElementById('f-time').value, departure: document.getElementById('f-departure').value, arrival: document.getElementById('f-arrival').value, people: parseInt(document.getElementById('f-people').value || 0), updatedAt: Date.now() };
-            if(currentEditId) db = db.map(x => String(x.id) === currentEditId ? record : x); else db.push(record); sync(); closeEntryModal();
-        };
+        document.getElementById('record-form').onsubmit = (e) => { e.preventDefault(); const rawAmount = document.getElementById('f-amount-display').value.replace(/[^0-9]/g, ''); const record = { id: currentEditId || String(Date.now()), date: document.getElementById('f-date').value, amount: parseInt(rawAmount || 0), supplier: document.getElementById('f-supplier').value || "미지정", note: document.getElementById('f-note').value, time: document.getElementById('f-time').value, departure: document.getElementById('f-departure').value, arrival: document.getElementById('f-arrival').value, people: parseInt(document.getElementById('f-people').value || 0), updatedAt: Date.now() }; if(currentEditId) db = db.map(x => String(x.id) === currentEditId ? record : x); else db.push(record); sync(); closeEntryModal(); };
 
         window.deleteItemDirect = () => { if(currentEditId && confirm('기록을 삭제할까요?')) { db = db.filter(x => String(x.id) !== currentEditId); sync(); closeEntryModal(); } };
         window.applyFilter = (name) => { searchTerm = name.toLowerCase(); currentNav = 'list'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
-        // **상세 일정 카드 (인원/거래처 한 줄 배치 최적화)**
         function renderItemCard(item, showDate = false, hideAmount = false) {
             return `
-                <div onclick="openEntryModal('${item.id}')" class="bg-card py-3 px-4 rounded-[1.25rem] border border-white/5 light-mode:border-slate-200 light-mode:bg-white mb-2 active:opacity-60 text-left shadow-sm">
+                <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-3xl border border-white/5 light-mode:border-slate-200 light-mode:bg-white mb-2 active:opacity-60 text-left shadow-sm">
                     <div class="flex justify-between items-center pb-1.5 mb-1.5 border-b border-white/5 light-mode:border-slate-100 opacity-80 text-important">
                         <div class="flex items-center gap-2 text-indigo-500 font-bold text-[12px] uppercase">
                             ${showDate ? `<span class="px-2 py-0.5 rounded bg-indigo-500/10 text-left">${item.date.split('-').slice(1).join('.')}</span>` : ''}
                             <span class="font-mono text-important">${formatTimeDisplay(item.time) || '--시'}</span>
                         </div>
-                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 opacity-40 text-important"></i>
+                        <i data-lucide="chevron-right" size="12" class="text-important opacity-40"></i>
                     </div>
-                    <div class="space-y-2">
-                        <p class="text-[18px] font-bold text-important leading-tight">${item.note || '내용 없음'}</p>
-                        ${(item.departure || item.arrival) ? `<div class="text-[13px] font-bold bg-[var(--badge-bg)] py-1.5 px-3 rounded-lg border border-white/5 light-mode:border-slate-300 text-important"><span class="flex items-center gap-2">${item.departure || '..'} <i data-lucide="arrow-right" class="w-3 h-3 opacity-50"></i> ${item.arrival || '..'}</span></div>` : ''}
-                        <div class="flex justify-between items-center pt-0.5">
-                            <div class="flex items-center gap-1.5 text-[12px] font-bold">
+                    <div class="space-y-2 text-left">
+                        <p class="text-[18px] font-bold text-important leading-tight text-left">${item.note || '메모 내용 없음'}</p>
+                        ${(item.departure || item.arrival) ? `<div class="text-[13px] font-bold bg-[var(--badge-bg)] py-1.5 px-3 rounded-lg border border-white/5 light-mode:border-slate-300 text-important text-left"><span class="flex items-center gap-2">${item.departure || '..'} <i data-lucide="arrow-right" class="w-3 h-3 opacity-50"></i> ${item.arrival || '..'}</span></div>` : ''}
+                        <div class="flex justify-between items-center pt-0.5 text-left">
+                            <div class="flex items-center gap-1.5 text-[12px] font-bold text-left">
                                 ${(item.people > 0) ? `<span class="text-indigo-500">인원: ${item.people}명</span>` : ''}
                                 ${(item.people > 0 && item.supplier) ? `<span class="text-slate-300 light-mode:text-slate-400 opacity-50">•</span>` : ''}
                                 <span class="text-slate-500 uppercase tracking-tighter">${item.supplier || '미지정'}</span>
@@ -343,8 +281,7 @@
                             ${(!hideAmount && item.amount > 0) ? `<p class="text-[20px] font-black text-important tracking-tighter text-right">💰 ${formatKRW(item.amount)}원</p>` : ''}
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
         function render() {
@@ -356,14 +293,14 @@
             if(currentNav === 'home') {
                 const todayItems = sortItemsByTime(db.filter(x => x.date === todayStr));
                 const monthTotal = db.filter(x => x.date.startsWith(monthPrefix)).reduce((acc, cur) => acc + (Number(cur.amount) || 0), 0);
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-important"><div class="bg-gradient-to-br from-indigo-950/20 to-zinc-900/50 light-mode:from-indigo-50 light-mode:to-white p-8 mb-8 border border-indigo-500/10 light-mode:border-indigo-200 shadow-2xl rounded-[2rem] text-left"><p class="opacity-50 text-[11px] uppercase tracking-[0.2em] mb-1">Monthly Total Rev</p><h2 class="text-5xl font-black tracking-tighter text-important">${formatKRW(monthTotal)}<span class="text-xl ml-1 opacity-40 font-light">원</span></h2><div class="mt-8 flex flex-col"><span class="text-[11px] opacity-40 uppercase tracking-widest text-left">오늘 일정</span><span class="text-3xl font-black text-indigo-500 text-left">${todayItems.length}건</span></div></div><h3 class="opacity-40 text-[11px] uppercase px-1 mb-4 tracking-[0.3em] text-left">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-20 opacity-30 text-sm italic text-left">기록이 없습니다.</p>'}</div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-important"><div class="bg-gradient-to-br from-indigo-950/20 to-zinc-900/50 light-mode:from-indigo-50 light-mode:to-white p-8 mb-8 border border-indigo-500/10 light-mode:border-indigo-200 shadow-2xl rounded-[2rem] text-left"><p class="opacity-50 text-[11px] uppercase tracking-[0.2em] mb-1">Monthly Total Rev</p><h2 class="text-5xl font-black text-important tracking-tighter text-left">${formatKRW(monthTotal)}<span class="text-xl ml-1 opacity-40 font-light">원</span></h2><div class="mt-8 flex flex-col text-left"><span class="text-[11px] opacity-40 uppercase tracking-widest text-left">오늘 일정</span><span class="text-3xl font-black text-indigo-500 text-left">${todayItems.length}건</span></div></div><h3 class="opacity-40 text-[11px] uppercase px-1 mb-4 tracking-[0.3em] text-left">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-20 opacity-30 text-sm italic text-left">기록이 없습니다.</p>'}</div>`;
             } else if(currentNav === 'list') {
                 const filtered = sortItemsByDateAsc(db.filter(it => (it.note||'').toLowerCase().includes(searchTerm) || (it.supplier||'').toLowerCase().includes(searchTerm)));
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 text-important"><div class="py-4"><input type="text" placeholder="검색..." class="input-field w-full shadow-inner" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); render();"></div><h1 class="text-xl font-black mb-5 text-left">전체 기록</h1>${filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic text-left">기록이 없습니다.</p>`}</div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 text-important"><div class="py-4 text-left"><input type="text" placeholder="검색..." class="input-field w-full shadow-inner" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); render();"></div><h1 class="text-xl font-black mb-5 text-left text-left">전체 기록</h1>${filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic text-left">기록이 없습니다.</p>`}</div>`;
             } else if(currentNav === 's_cal') { 
                 const mData = db.filter(x => x.date.startsWith(monthPrefix) && Number(x.amount) > 0);
                 const total = mData.reduce((a,b) => a + (Number(b.amount) || 0), 0), bySupp = mData.reduce((acc, c) => { const n = c.supplier || '미지정'; acc[n] = (acc[n]||0) + Number(c.amount); return acc; }, {});
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-important"><div class="flex flex-col mb-10"><h2 class="text-2xl font-black text-important text-left">${calContext.getMonth() + 1}월 매출 통계</h2><p class="text-[11px] opacity-40 uppercase tracking-[0.4em] mt-1 text-important text-left">${calContext.getFullYear()}</p></div><div class="grid grid-cols-2 gap-4 mb-12"><div class="p-6 bg-zinc-900/50 light-mode:bg-slate-50 border border-white/5 light-mode:border-slate-200 rounded-3xl shadow-lg text-left"><p class="text-[10px] opacity-50 uppercase font-bold mb-1">Total Rev</p><p class="text-lg font-black text-indigo-500">${formatKRW(total)}원</p></div><div class="p-6 bg-zinc-900/50 light-mode:bg-slate-50 border border-white/5 light-mode:border-slate-200 rounded-3xl shadow-lg text-left"><p class="text-[10px] opacity-50 uppercase font-bold mb-1">Count</p><p class="text-lg font-black text-important">${mData.length}건</p></div></div><h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-important text-left">거래처별 합계</h3><div class="bg-zinc-950 light-mode:bg-white border border-white/5 light-mode:border-slate-200 overflow-hidden rounded-3xl text-left text-left">${Object.entries(bySupp).sort((a,b)=>b[1]-a[1]).map(([n, v]) => `<div onclick="applyFilter('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 light-mode:border-slate-100 active:bg-indigo-500/10 text-left"><span class="font-bold text-[14px] text-important">${n}</span><span class="font-black text-indigo-400 text-[16px]">${formatKRW(v)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm text-left">내역 없음</p>'}</div></div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-important text-left"><div class="flex flex-col mb-10 text-left"><h2 class="text-2xl font-black text-important text-left">${calContext.getMonth() + 1}월 매출 통계</h2><p class="text-[11px] opacity-40 uppercase tracking-[0.4em] mt-1 text-important text-left text-left">${calContext.getFullYear()}</p></div><div class="grid grid-cols-2 gap-4 mb-12 text-left"><div class="p-6 bg-zinc-900/50 light-mode:bg-slate-50 border border-white/5 light-mode:border-slate-200 rounded-3xl shadow-lg text-left text-left"><p class="text-[10px] opacity-50 uppercase font-bold mb-1">Total Rev</p><p class="text-lg font-black text-indigo-500 text-left text-left">${formatKRW(total)}원</p></div><div class="p-6 bg-zinc-900/50 light-mode:bg-slate-50 border border-white/5 light-mode:border-slate-200 rounded-3xl shadow-lg text-left text-left"><p class="text-[10px] opacity-50 uppercase font-bold mb-1 text-left text-left text-left text-left">Count</p><p class="text-lg font-black text-important text-left text-left text-left text-left">${mData.length}건</p></div></div><h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-important text-left text-left">거래처별 합계</h3><div class="bg-zinc-950 light-mode:bg-white border border-white/5 light-mode:border-slate-200 overflow-hidden rounded-3xl text-left text-left text-left">${Object.entries(bySupp).sort((a,b)=>b[1]-a[1]).map(([n, v]) => `<div onclick="applyFilter('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 light-mode:border-slate-100 active:bg-indigo-500/10 text-left text-left text-left text-left text-left"><span class="font-bold text-[14px] text-important text-left text-left">${n}</span><span class="font-black text-indigo-400 text-[16px] text-left text-left">${formatKRW(v)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm text-left text-left text-left">내역 없음</p>'}</div></div>`;
             } else if(currentNav === 'e_cal') {
                 const y = calContext.getFullYear(), m = calContext.getMonth(), start = new Date(y, m, 1).getDay(), last = new Date(y, m + 1, 0).getDate();
                 let gridHtml = ''; let cells = [];
@@ -372,11 +309,11 @@
                     const isT = isV && todayStr === dateStr;
                     if (isV) {
                         const items = sortItemsByTime(db.filter(x => x.date === dateStr));
-                        let strips = items.map(it => `<div class="memo-strip text-important"><span class="strip-time text-important">${formatTimeDisplay(it.time)}</span> ${it.supplier !== "미지정" ? it.supplier : it.note.substring(0,8)}</div>`).join('');
+                        let strips = items.map(it => `<div class="memo-strip text-important text-left"><span class="strip-time text-important text-left">${formatTimeDisplay(it.time)}</span> ${it.supplier !== "미지정" ? it.supplier : it.note.substring(0,8)}</div>`).join('');
                         const holiday = holidays2026[`${mm}-${dd}`], dateColorClass = (i % 7 === 0 || (holiday && holiday.red)) ? 'sun' : (i % 7 === 6 ? 'sat' : '');
                         const holidayHtml = holiday ? `<span class="holiday-text ${holiday.red?'holiday-badge-red':'holiday-badge-indigo'} text-center">${holiday.name}</span>` : '';
-                        cells.push(`<div onclick="handleDateTouch('${dateStr}')" class="memo-cell ${isT ? 'is-today' : ''} ${selectedDate === dateStr ? 'is-selected' : ''} text-left"><div class="date-header"><span class="date-num ${dateColorClass}">${dNum}</span>${holidayHtml}</div><div class="w-full">${strips}</div></div>`);
-                    } else cells.push(`<div class="memo-cell opacity-5 text-left"></div>`);
+                        cells.push(`<div onclick="handleDateTouch('${dateStr}')" class="memo-cell ${isT ? 'is-today' : ''} ${selectedDate === dateStr ? 'is-selected' : ''} text-left"><div class="date-header text-left"><span class="date-num ${dateColorClass} text-left text-left">${dNum}</span>${holidayHtml}</div><div class="w-full text-left text-left">${strips}</div></div>`);
+                    } else cells.push(`<div class="memo-cell opacity-5 text-left text-left"></div>`);
                     if ((i + 1) % 7 === 0) {
                         gridHtml += cells.join('');
                         if (selectedDate) {
@@ -384,13 +321,13 @@
                             if (sY === y && sM === m + 1 && (sD + start - 1) >= i - 6 && (sD + start - 1) <= i) {
                                 const daily = sortItemsByTime(db.filter(x => x.date === selectedDate));
                                 const dow = ['일','월','화','수','목','금','토'][new Date(selectedDate).getDay()];
-                                gridHtml += `<div class="expansion-panel"><div class="flex justify-between items-center mb-5 border-b border-white/5 light-mode:border-slate-300 pb-3 text-important"><span class="text-[16px] font-black tracking-widest uppercase text-left">${String(sM).padStart(2,'0')}.${String(sD).padStart(2,'0')} (${dow}) 상세 일정</span><button onclick="handleDateTouch(null); event.stopPropagation();"><i data-lucide="x" class="w-6 h-6 text-important"></i></button></div><div class="space-y-2.5">${daily.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-10 opacity-30 text-sm italic text-left">일정이 없습니다.</p>'}</div></div>`;
+                                gridHtml += `<div class="expansion-panel text-left"><div class="flex justify-between items-center mb-5 border-b border-white/5 light-mode:border-slate-300 pb-3 text-important text-left"><span class="text-[16px] font-black tracking-widest uppercase text-left text-left">${String(sM).padStart(2,'0')}.${String(sD).padStart(2,'0')} (${dow}) 상세 일정</span><button onclick="handleDateTouch(null); event.stopPropagation();" text-left><i data-lucide="x" class="w-6 h-6 text-important text-left text-left"></i></button></div><div class="space-y-2.5 text-left text-left">${daily.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-10 opacity-30 text-sm italic text-left">일정이 없습니다.</p>'}</div></div>`;
                             }
                         }
                         cells = [];
                     }
                 }
-                root.innerHTML = `<div ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)" class="animate-in fade-in duration-500 text-left"><div class="flex justify-between items-end mb-6 px-5"><div class="flex items-end gap-4"><h2 class="text-5xl font-black tracking-tighter leading-none text-important">${m + 1}월</h2><div class="flex flex-col mb-1"><span class="text-[14px] font-bold opacity-50 uppercase tracking-widest leading-none mb-1.5 text-important">${y}</span><span class="text-xl font-medium opacity-50 italic leading-none text-important">${monthNamesEn[m]}</span></div></div></div><div class="grid grid-cols-7 text-[13px] font-extrabold text-center mb-4 opacity-50 text-important"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div><div class="calendar-grid overflow-hidden border-b border-white/5 light-mode:border-slate-200 shadow-2xl">${gridHtml}</div></div>`;
+                root.innerHTML = `<div ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)" class="animate-in fade-in duration-500 text-left"><div class="flex justify-between items-end mb-6 px-5 text-left"><div class="flex items-end gap-4 text-left"><h2 class="text-5xl font-black tracking-tighter leading-none text-important text-left"> ${m + 1}월</h2><div class="flex flex-col mb-1 text-left"><span class="text-[14px] font-bold opacity-50 uppercase tracking-widest leading-none mb-1.5 text-important text-left">${y}</span><span class="text-xl font-medium opacity-50 italic leading-none text-important text-left">${monthNamesEn[m]}</span></div></div></div><div class="grid grid-cols-7 text-[13px] font-extrabold text-center mb-4 opacity-50 text-important text-left"><div class="text-center">SUN</div><div class="text-center">MON</div><div class="text-center">TUE</div><div class="text-center">WED</div><div class="text-center">THU</div><div class="text-center">FRI</div><div class="text-center">SAT</div></div><div class="calendar-grid overflow-hidden border-b border-white/5 light-mode:border-slate-200 shadow-2xl text-left">${gridHtml}</div></div>`;
             }
             lucide.createIcons();
         }
