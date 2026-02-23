@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v154-today-fix';
+const CACHE_NAME = 'logrit-v155-swipe-fixed';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
