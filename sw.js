@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v162-monthly-filter';
+const CACHE_NAME = 'logrit-v163-swipe-precision';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
