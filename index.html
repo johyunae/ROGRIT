@@ -105,7 +105,7 @@
             <div class="w-8 h-8 bg-indigo-600 flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm text-left">L</div>
             <div class="flex flex-col">
                 <span class="font-bold text-sm tracking-tighter text-important">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V161 Stable</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest mt-0.5 uppercase">Master V162 Stable</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -118,7 +118,7 @@
     <div id="app-view" class="w-full mx-auto pt-14 px-0 overflow-x-hidden text-left min-h-screen"></div>
 
     <!-- 하단 네비게이션 -->
-    <nav id="bottom-nav" class="fixed bottom-6 left-4 right-4 max-w-[calc(100%-2rem)] mx-auto bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 h-20 flex justify-around items-center z-40 rounded-[2.5rem] shadow-2xl px-1 light-mode:bg-white/95 light-mode:border-slate-200 text-left">
+    <nav id="bottom-nav" class="fixed bottom-6 left-4 right-4 max-w-[calc(100%-2rem)] mx-auto bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 h-20 flex justify-around items-center z-40 rounded-[2.5rem] shadow-2xl px-1 light-mode:bg-white/95 light-mode:border-slate-200">
         <button onclick="navTo('e_cal')" id="nav-e_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="calendar" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">일정</span></button>
         <button onclick="navTo('list')" id="nav-list" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">기록</span></button>
         <button onclick="navTo('s_cal')" id="nav-s_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-slate-400"><i data-lucide="trending-up" class="w-[18px] h-[18px]"></i><span class="text-[9px] font-bold">매출</span></button>
@@ -136,6 +136,7 @@
         let isLightMode = JSON.parse(localStorage.getItem('theme_is_light') || 'false');
         
         let currentNav = 'e_cal', currentEditId = null, calContext = new Date(), selectedDate = null, searchTerm = "";
+        let filterMonth = null; // V162: 매출 탭에서 넘어온 달 정보 저장
         let startX = 0;
 
         const monthNamesEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -152,10 +153,8 @@
         function formatTimeDisplay(t) { if(!t) return ''; const p = t.split(':'); return (p.length === 2 && (p[1] === '00' || p[1] === '0')) ? `${parseInt(p[0])}시` : t; }
         
         const sortItemsByTime = (items) => [...items].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
-        
-        // V161: 기록 탭 과거순(날짜 오름차순) 정렬로 변경
         const sortItemsByDateAsc = (items) => [...items].sort((a, b) => 
-            a.date.localeCompare(b.date) || (a.time || '00:00').localeCompare(b.time || '00:00')
+            a.date.localeCompare(b.date) || (a.time || '00:00').localeCompare(a.time || '00:00')
         );
 
         function getLocalToday() { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; }
@@ -168,7 +167,15 @@
 
         window.showToast = (msg) => { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 2500); };
         window.toggleTheme = () => { isLightMode = !isLightMode; applyTheme(); render(); };
-        window.navTo = (nav) => { currentNav = nav; selectedDate = null; searchTerm = ""; render(); };
+        
+        window.navTo = (nav) => { 
+            currentNav = nav; 
+            selectedDate = null; 
+            searchTerm = ""; 
+            filterMonth = null; // 네비게이션으로 이동 시 월간 필터 초기화
+            render(); 
+        };
+
         window.moveMonth = (v) => { calContext = new Date(calContext.getFullYear(), calContext.getMonth() + v, 1); selectedDate = null; render(); };
         
         window.goToToday = () => { 
@@ -214,18 +221,37 @@
             return t;
         }
 
+        // V162: 매출 탭에서 거래처 클릭 시 호출되는 함수
+        window.viewSupplierMonthly = (supplier) => {
+            const mPrefix = `${calContext.getFullYear()}-${String(calContext.getMonth()+1).padStart(2,'0')}`;
+            filterMonth = mPrefix; // 현재 달을 필터 조건에 저장
+            searchTerm = supplier.toLowerCase();
+            currentNav = 'list';
+            render();
+        };
+
         window.handleSearch = (el) => {
             searchTerm = el.value.toLowerCase();
+            renderListContent();
+        };
+
+        function renderListContent() {
             const listContainer = document.getElementById('record-list-content');
             if (listContainer) {
-                const filtered = sortItemsByDateAsc(db.filter(it => 
+                let filtered = db;
+                // 월간 필터가 설정되어 있다면 해당 월만 표시
+                if (filterMonth) {
+                    filtered = filtered.filter(x => x.date.startsWith(filterMonth));
+                }
+                // 거래처/메모 검색어 필터링
+                filtered = sortItemsByDateAsc(filtered.filter(it => 
                     (it.note||'').toLowerCase().includes(searchTerm) || 
                     (it.supplier||'').toLowerCase().includes(searchTerm)
                 ));
                 listContainer.innerHTML = filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic">결과 없음</p>`;
                 lucide.createIcons();
             }
-        };
+        }
 
         function renderItemCard(item, showDate = false, hideAmount = false) {
             const displayNote = cleanText(item.note);
@@ -266,9 +292,17 @@
                 const todayItems = sortItemsByTime(db.filter(x => x.date === todayStr)), monthTotal = db.filter(x => x.date.startsWith(mPrefix)).reduce((acc, cur) => acc + (Number(cur.amount) || 0), 0);
                 root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 pt-4 text-important text-left"><div class="bg-gradient-to-br from-indigo-950/20 to-zinc-900/50 light-mode:from-indigo-50 light-mode:to-white p-8 mb-8 border border-indigo-500/10 light-mode:border-indigo-200 shadow-2xl rounded-[2rem] text-left"><p class="opacity-50 text-[11px] uppercase tracking-[0.2em] mb-1 text-left text-important">Monthly Total Rev</p><h2 class="text-5xl font-black tracking-tighter text-important text-left">${formatKRW(monthTotal)}<span class="text-xl ml-1 opacity-40 font-light text-important text-left">원</span></h2><div class="mt-8 flex flex-col text-left"><span class="text-[11px] opacity-40 uppercase tracking-widest text-left text-important">오늘 일정</span><span class="text-3xl font-black text-indigo-500 text-left text-important">${todayItems.length}건</span></div></div><h3 class="opacity-40 text-[11px] uppercase px-1 mb-4 tracking-[0.3em] text-important text-left">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, true)).join('') || '<p class="text-center py-20 opacity-30 text-sm italic text-important text-left">기록이 없습니다.</p>'}</div>`;
             } else if (currentNav === 'list') {
-                // V161: 과거순(날짜 오름차순)으로 정렬
-                const filtered = sortItemsByDateAsc(db.filter(it => (it.note||'').toLowerCase().includes(searchTerm) || (it.supplier||'').toLowerCase().includes(searchTerm)));
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-5 text-important"><div class="py-4"><input type="text" placeholder="검색..." class="input-field w-full shadow-inner text-important text-left" value="${searchTerm}" oninput="window.handleSearch(this)"></div><h1 class="text-xl font-black mb-5 text-important text-left">전체 기록 (과거순)</h1><div id="record-list-content">${filtered.map(x => renderItemCard(x, true, false)).join('') || `<p class="text-center py-24 opacity-30 italic">기록이 없습니다.</p>`}</div></div>`;
+                const monthInfo = filterMonth ? `<div class="mb-2 px-1 text-indigo-500 font-bold text-xs uppercase tracking-widest flex justify-between"><span>${filterMonth.split('-')[1]}월 내역 필터 적용 중</span><button onclick="navTo('list')" class="underline">전체 기간 보기</button></div>` : "";
+                root.innerHTML = `
+                    <div class="animate-in fade-in duration-500 px-5 text-important">
+                        <div class="py-4">
+                            <input type="text" placeholder="검색..." class="input-field w-full shadow-inner text-important text-left" value="${searchTerm}" oninput="window.handleSearch(this)">
+                        </div>
+                        ${monthInfo}
+                        <h1 class="text-xl font-black mb-5 text-important text-left">전체 기록 (과거순)</h1>
+                        <div id="record-list-content"></div>
+                    </div>`;
+                renderListContent();
             } else if (currentNav === 's_cal') { 
                 const mData = db.filter(x => x.date.startsWith(mPrefix) && Number(x.amount) > 0);
                 const total = mData.reduce((a,b) => a + (Number(b.amount) || 0), 0);
@@ -296,10 +330,10 @@
                                 <p class="text-lg font-black text-important">${mData.length}건</p>
                             </div>
                         </div>
-                        <h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-important text-left">거래처별 통계</h3>
+                        <h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest text-important text-left">거래처별 통계 (터치 시 상세 필터)</h3>
                         <div class="bg-zinc-950 light-mode:bg-white border border-white/5 light-mode:border-slate-200 overflow-hidden rounded-3xl text-left">
                             ${Object.entries(bySupp).sort((a,b)=>b[1].amount - a[1].amount).map(([n, data]) => `
-                                <div onclick="currentNav='list'; searchTerm='${n.toLowerCase()}'; render();" class="flex justify-between items-center p-5 border-b border-white/5 light-mode:border-slate-100 active:bg-indigo-500/10 text-important">
+                                <div onclick="viewSupplierMonthly('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 light-mode:border-slate-100 active:bg-indigo-500/10 text-important">
                                     <div class="flex flex-col gap-0.5">
                                         <span class="font-bold text-[14px] text-important">${n}</span>
                                         <span class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">${data.count}건</span>
@@ -310,7 +344,7 @@
                         </div>
                     </div>`;
             } else if (currentNav === 'settings') {
-                root.innerHTML = `<div class="animate-in fade-in duration-500 px-6 pt-6 text-important text-left"><h2 class="text-2xl font-black mb-8 text-important text-left">시스템 설정</h2><div class="space-y-6 text-left text-important"><div class="flex justify-between items-center bg-white/5 light-mode:bg-slate-100 p-5 rounded-2xl text-left text-important"><span class="font-bold">화이트 모드</span><button onclick="toggleTheme()" class="w-12 h-6 bg-zinc-700 light-mode:bg-slate-300 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform" style="${isLightMode?'transform:translateX(24px)':''}"></div></button></div><button onclick="location.reload(true)" class="w-full py-4 bg-zinc-700 light-mode:bg-slate-200 rounded-xl text-xs font-bold text-important">앱 강제 새로고침</button></div></div>`;
+                root.innerHTML = `<div class="animate-in fade-in duration-500 px-6 pt-6 text-important text-left"><h2 class="text-2xl font-black mb-8 text-important text-left">시스템 설정</h2><div class="space-y-6 text-left text-important"><div class="flex justify-between items-center bg-white/5 light-mode:bg-slate-100 p-5 rounded-2xl text-left text-important"><span class="font-bold">화이트 모드</span><button onclick="toggleTheme()" class="w-12 h-6 bg-zinc-700 light-mode:bg-slate-300 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform" style="${isLightMode?'transform:translateX(24px)':''}"></div></button></div><button onclick="window.location.reload(true)" class="w-full py-4 bg-zinc-700 light-mode:bg-slate-200 rounded-xl text-xs font-bold text-important">앱 강제 새로고침</button></div></div>`;
             } else if (currentNav === 'e_cal') {
                 const y = calContext.getFullYear(), m = calContext.getMonth(), start = new Date(y, m, 1).getDay(), last = new Date(y, m + 1, 0).getDate();
                 let gridHtml = '', cells = [];
@@ -353,7 +387,6 @@
                             <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
                         </div>
                         <div class="calendar-grid border-b border-white/5 light-mode:border-slate-200 shadow-2xl text-left">${gridHtml}</div>
-                        
                         <div class="flex justify-center mt-20 mb-32 text-important">
                             <div class="flex gap-1 bg-card p-0.5 rounded-lg border border-white/10 shadow-sm light-mode:bg-slate-100 light-mode:border-slate-200 text-important translate-y-[8px]">
                                 <button onclick="moveMonth(-1)" class="p-3 active:bg-indigo-500/10 rounded-md transition-all text-important text-left text-important"><i data-lucide="chevron-left" class="w-4 h-4 text-important text-left text-important"></i></button>
@@ -372,7 +405,7 @@
                     <div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 pb-12 overflow-y-auto max-h-[90vh] light-mode:bg-white text-important text-left text-important">
                         <div class="flex justify-between items-center mb-6 text-important text-left text-important">
                             <h3 class="text-xl font-bold text-important text-left text-important">활동 기록</h3>
-                            <button onclick="document.getElementById('modal-container').remove()" class="p-2 bg-zinc-800 light-mode:bg-slate-100 rounded-full text-slate-400 text-left text-important"><i data-lucide="x" class="w-5 h-5 text-important text-left text-important text-important"></i></button>
+                            <button onclick="document.getElementById('modal-container').remove()" class="p-2 bg-zinc-800 light-mode:bg-slate-100 rounded-full text-slate-400 text-left text-important"><i data-lucide="x" class="w-5 h-5 text-important text-left text-important"></i></button>
                         </div>
                         <form id="record-form" onsubmit="window.saveRecord(event)" class="space-y-4 text-important text-left text-important">
                             <input type="date" id="f-date" class="input-field text-important text-left text-important" required value="${selectedDate || getLocalToday()}">
@@ -385,7 +418,7 @@
                             </div>
                             <textarea id="f-note" placeholder="상세 메모" class="input-field h-auto min-h-[120px] p-4 leading-relaxed text-important text-left text-important" oninput="window.autoResize(this)"></textarea>
                             <div class="flex gap-3 mt-6 text-left text-important text-important text-important">
-                                ${id ? `<button type="button" onclick="window.deleteItemDirect('${id}')" class="flex-1 bg-red-950/20 light-mode:bg-red-50 text-red-500 py-4 border border-red-900/20 rounded-xl font-bold text-center">삭제</button>` : ''}
+                                ${id ? `<button type="button" onclick="window.deleteItemDirect('${id}')" class="flex-1 bg-red-950/20 light-mode:bg-red-50 text-red-500 py-4 border border-red-900/20 rounded-xl font-bold text-center text-important">삭제</button>` : ''}
                                 <button type="submit" class="flex-[2] btn-primary text-center">저장하기</button>
                             </div>
                         </form>
