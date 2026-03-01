@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v158-sales-count';
+const CACHE_NAME = 'logrit-v161-oldest-first';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
