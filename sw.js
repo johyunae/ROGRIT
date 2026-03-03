@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v163-swipe-precision';
+const CACHE_NAME = 'logrit-v164-copy-feature';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
