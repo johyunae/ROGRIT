@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v164-copy-feature';
+const CACHE_NAME = 'logrit-v165-amount-toggle';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
