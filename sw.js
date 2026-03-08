@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v167-supplier-sum';
+const CACHE_NAME = 'logrit-v168-sort-final';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
