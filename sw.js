@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v168-sort-final';
+const CACHE_NAME = 'logrit-v169-sticky-header';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
