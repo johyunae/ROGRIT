@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v171-smart-import';
+const CACHE_NAME = 'logrit-v172-final-fix'; // 버전 숫자를 높임
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
@@ -10,7 +10,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
-  self.skipWaiting();
+  self.skipWaiting(); 
 });
 
 self.addEventListener('activate', (e) => {
@@ -18,7 +18,7 @@ self.addEventListener('activate', (e) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
+          if (key !== CACHE_NAME) return caches.delete(key); 
         })
       );
     })
