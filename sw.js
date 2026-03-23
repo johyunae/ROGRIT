@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v180-master-rebuild';
+const CACHE_NAME = 'logrit-v181-text-zoom';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
