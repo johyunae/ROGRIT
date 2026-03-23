@@ -29,15 +29,18 @@
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100; background-color: rgba(0,0,0,0.9); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .sticky-sub { position: sticky; top: 56px; z-index: 45; background-color: var(--bg-color); width: 100%; border-bottom: 1px solid var(--calendar-border); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100vw; border-top: 1px solid var(--calendar-border); }
-        .memo-cell { min-height: 110px; border-right: 0.5px solid var(--calendar-border); border-bottom: 0.5px solid var(--calendar-border); position: relative; cursor: pointer; display: flex; flex-direction: column; overflow: hidden; }
+        /* V181: 셀 높이 소폭 조정 */
+        .memo-cell { min-height: 115px; border-right: 0.5px solid var(--calendar-border); border-bottom: 0.5px solid var(--calendar-border); position: relative; cursor: pointer; display: flex; flex-direction: column; overflow: hidden; }
         .memo-cell.is-selected { background-color: rgba(99, 102, 241, 0.05); box-shadow: inset 0 0 0 2px var(--brand-color); z-index: 10; }
         .memo-cell:nth-child(7n) { border-right: none; }
-        .date-num { font-size: 14px; font-weight: 700; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 2px auto; }
-        .is-today .date-num { background: var(--brand-color); color: white; border-radius: 50%; }
-        .memo-strip { font-size: 9px; padding: 1px 4px; color: var(--text-main); white-space: nowrap; overflow: hidden; font-weight: 500; }
+        /* V181: 날짜 폰트 확대 14px -> 16px */
+        .date-num { font-size: 16px; font-weight: 800; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 4px auto; transition: 0.2s; }
+        .is-today .date-num { background: var(--brand-color); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        /* V181: 일정 글자 확대 9px -> 11px */
+        .memo-strip { font-size: 11px; padding: 2px 4px; color: var(--text-main); white-space: nowrap; overflow: hidden; font-weight: 600; letter-spacing: -0.05em; }
         .sun { color: var(--sun-color) !important; } .sat { color: var(--sat-color) !important; }
         .expansion-panel { grid-column: 1 / span 7; background-color: var(--card-bg); border-bottom: 1px solid var(--calendar-border); padding: 16px; animation: slideDown 0.2s ease-out; scroll-margin-top: 150px; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-50px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         .input-field { width: 100%; background-color: rgba(255,255,255,0.05); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 16px; color: var(--text-bold); outline: none; font-size: 16px; }
         .btn-primary { width: 100%; background-color: var(--brand-color); color: #ffffff; padding: 18px; border-radius: 14px; font-weight: 900; }
         #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 13px; z-index: 200; opacity: 0; visibility: hidden; transition: 0.3s; }
@@ -52,7 +55,7 @@
             <div class="w-8 h-8 bg-indigo-600 flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm">L</div>
             <div class="flex flex-col text-left">
                 <span class="font-bold text-sm tracking-tighter text-important">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V180 Official</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V181 Official</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -97,7 +100,6 @@
         window.openSettings = () => { currentNav = 'settings'; render(); };
         window.handleDateTouch = (dateStr) => { selectedDate = (selectedDate === dateStr) ? null : dateStr; render(); };
 
-        // V180: 정교한 스와이프 (세로 스크롤 간섭 완전 방지)
         window.ontouchstart = (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; };
         window.ontouchend = (e) => { 
             if (currentNav !== 'e_cal') return;
@@ -108,10 +110,16 @@
             }
         };
 
-        // V180: 클린 뷰 텍스트 정화 로직
         function cleanText(t, fb="") { if(!t) return fb; const v = String(t).trim(); return (v==="" || v==="미지정" || v==="내용없음" || v==="내용 없음") ? fb : v; }
 
-        // V180: 최상위 정렬 로직 (시간 오름차순)
+        // V181: 스마트 시간 표시 로직
+        function smartTimeFormat(t) {
+            if (!t) return "";
+            const parts = t.split(':');
+            if (parts.length === 2 && (parts[1] === '00' || parts[1] === '0')) return `${parseInt(parts[0])}시`;
+            return t;
+        }
+
         const sortMaster = (arr) => [...arr].sort((a,b) => {
             if (a.date !== b.date) return a.date.localeCompare(b.date);
             const tA = parseInt((a.time||'00:00').replace(':','')) || 0;
@@ -119,7 +127,6 @@
             return tA - tB;
         });
 
-        // V180: 통합 카드 렌더러 (출발/도착 완벽 복구)
         function renderItemCard(item, showDate = false, cumulativeSum = null, forceAlwaysShow = false) {
             const note = cleanText(item.note);
             const supp = cleanText(item.supplier);
@@ -127,7 +134,6 @@
             const arrv = cleanText(item.arrival);
             const shouldHide = !forceAlwaysShow && !showAmounts;
             
-            // 금액 표시 로직: 숨김 상태면 아무 글자도 안 나오게 완전 공백 처리
             let priceDisplay = "";
             if (item.amount > 0) {
                 if (shouldHide) { priceDisplay = ""; }
@@ -139,7 +145,7 @@
             return `
                 <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-2xl mb-3 border border-white/5 shadow-lg text-left active:opacity-60 transition-all">
                     <div class="flex justify-between items-center border-b border-white/5 pb-2 mb-3">
-                        <span class="text-indigo-500 font-bold text-[14px] uppercase">${showDate ? item.date+' ' : ''}${item.time || ''}</span>
+                        <span class="text-indigo-500 font-bold text-[14px] uppercase">${showDate ? item.date+' ' : ''}${smartTimeFormat(item.time)}</span>
                         <i data-lucide="chevron-right" class="w-4 h-4 opacity-40"></i>
                     </div>
                     <p class="font-bold text-lg text-important leading-tight mb-2">${note || '일정 기록'}</p>
@@ -166,9 +172,10 @@
                     const items = sortMaster(db.filter(x => x.date === dStr));
                     const isT = dStr === todayStr;
                     const dCls = (start+d-1)%7 === 0 ? 'sun' : ((start+d-1)%7 === 6 ? 'sat' : '');
+                    // V181: 달력 안의 시간도 스마트 표시 적용
                     gridHtml += `<div onclick="handleDateTouch('${dStr}');" class="memo-cell ${isT?'is-today':''} ${selectedDate===dStr?'is-selected':''}">
                         <div class="date-num ${dCls}">${d}</div>
-                        <div class="flex-1 overflow-hidden">${items.map(it => `<div class="memo-strip">${it.time||''} ${cleanText(it.supplier, it.note.substring(0,5))}</div>`).join('')}</div>
+                        <div class="flex-1 overflow-hidden">${items.map(it => `<div class="memo-strip">${smartTimeFormat(it.time)} ${cleanText(it.supplier, it.note.substring(0,5))}</div>`).join('')}</div>
                     </div>`;
                 }
                 let details = "";
@@ -183,7 +190,7 @@
                     </div>`;
                 }
                 root.innerHTML = `
-                    <div ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)" class="animate-in fade-in">
+                    <div class="animate-in fade-in">
                         <div class="sticky-sub px-5 py-5 shadow-lg">
                             <h2 class="text-3xl font-black text-important">${m+1}월</h2>
                             <div class="grid grid-cols-7 text-center text-[11px] font-extrabold opacity-40 mt-5"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div>
@@ -245,9 +252,9 @@
         }
 
         window.openImportModal = () => {
-            const html = `<div id="import-modal" class="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-5 text-important"><div class="bg-zinc-900 w-full max-w-lg rounded-3xl p-6 border border-white/10 shadow-2xl">
+            const html = `<div id="import-modal" class="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-5 text-important"><div class="bg-zinc-900 w-full max-w-lg rounded-3xl p-6 border border-white/10 shadow-2xl text-left">
                 <div class="flex justify-between items-center mb-5"><h3 class="text-xl font-bold">일정 스마트 가져오기</h3><button onclick="document.getElementById('import-modal').remove()"><i data-lucide="x"></i></button></div>
-                <textarea id="import-input" class="w-full h-44 bg-black border border-white/10 rounded-xl p-4 text-sm mb-5" placeholder="내용을 붙여넣으세요... (예: 2월 17일 10시 미팅)"></textarea>
+                <textarea id="import-input" class="w-full h-44 bg-black border border-white/10 rounded-xl p-4 text-sm mb-5 text-white" placeholder="내용을 붙여넣으세요..."></textarea>
                 <button onclick="processImport()" class="btn-primary mb-5">텍스트 분석하기</button>
                 <div id="import-preview" class="max-h-40 overflow-y-auto space-y-2 mb-5"></div>
                 <div id="import-btns" class="hidden"><button onclick="saveImported()" class="btn-primary bg-green-600">분석된 일정 모두 저장</button></div>
@@ -269,7 +276,7 @@
                 let min = (tMatch && tMatch[2]) ? tMatch[2].padStart(2,'0') : "00";
                 tempItems.push({ id: Date.now()+Math.random(), date: `${new Date().getFullYear()}-${month}-${day}`, time: `${hour}:${min}`, note: line.substring(0,40), amount: 0, supplier: "미지정", people: 1 });
             });
-            document.getElementById('import-preview').innerHTML = tempItems.map(it => `<div class="p-3 bg-white/5 rounded-xl text-xs"><b>${it.date} ${it.time}</b>: ${it.note}</div>`).join('');
+            document.getElementById('import-preview').innerHTML = tempItems.map(it => `<div class="p-3 bg-white/5 rounded-xl text-xs"><b>${it.date} ${smartTimeFormat(it.time)}</b>: ${it.note}</div>`).join('');
             if(tempItems.length>0) document.getElementById('import-btns').classList.remove('hidden');
         };
         window.saveImported = () => { db = [...db, ...tempItems]; sync(); document.getElementById('import-modal').remove(); showToast(`${tempItems.length}건 저장 완료`); navTo('e_cal'); };
@@ -277,13 +284,13 @@
         window.openEntryModal = (id = null) => {
             currentEditId = id ? String(id) : null;
             let html = `<div id="modal-container" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-end text-left"><div class="bg-zinc-900 w-full max-w-md mx-auto rounded-t-3xl p-6 pb-12 overflow-y-auto max-h-[95vh] light-mode:bg-white text-important text-left">
-                <div class="flex justify-between items-center mb-6 text-important"><h3 class="text-xl font-bold">활동 상세 기록</h3><button onclick="document.getElementById('modal-container').remove()" class="p-2 bg-zinc-800 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+                <div class="flex justify-between items-center mb-6 text-important"><h3 class="text-xl font-bold">활동 상세 기록</h3><button onclick="document.getElementById('modal-container').remove()" class="p-2 bg-zinc-800 light-mode:bg-slate-100 rounded-full text-slate-400 active:scale-95"><i data-lucide="x" class="w-5 h-5"></i></button></div>
                 <form id="record-form" onsubmit="window.saveRecord(event)" class="space-y-4">
                     <input type="date" id="f-date" class="input-field" required value="${selectedDate || getLocalToday()}">
                     <div class="grid grid-cols-2 gap-3"><input type="text" id="f-departure" placeholder="출발지" class="input-field font-bold"> <input type="text" id="f-arrival" placeholder="도착지" class="input-field font-bold"></div>
                     <div class="grid grid-cols-2 gap-3"><input type="text" id="f-time" placeholder="시간 (HH:MM)" class="input-field font-mono"> <input type="number" id="f-people" placeholder="인원" class="input-field font-bold"></div>
                     <input type="text" id="f-supplier" placeholder="거래처명" class="input-field font-bold">
-                    <div class="relative w-full text-important"><input type="text" id="f-amount-display" placeholder="매출 금액" inputmode="numeric" oninput="window.handleAmountInput(this)" class="input-field font-bold text-xl pr-10 text-important"><span class="absolute right-4 top-1/2 -translate-y-1/2 opacity-60 font-bold">원</span></div>
+                    <div class="relative w-full text-important"><input type="text" id="f-amount-display" placeholder="매출 금액" inputmode="numeric" oninput="window.handleAmountInput(this)" class="input-field font-bold text-xl pr-10 text-important"><span class="absolute right-4 top-1/2 -translate-y-1/2 opacity-60 font-bold text-white">원</span></div>
                     <textarea id="f-note" placeholder="상세 메모" class="input-field h-32 p-4 leading-relaxed"></textarea>
                     <div id="form-actions" class="flex gap-3 mt-6">
                         ${id ? `<button type="button" onclick="window.deleteItemDirect('${id}')" id="delete-btn" class="flex-1 bg-red-950/20 text-red-500 py-4 border border-red-900/20 rounded-xl font-bold text-center">삭제</button>` : ''}
