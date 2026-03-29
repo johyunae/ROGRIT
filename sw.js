@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logrit-v184-srt-backup';
+const CACHE_NAME = 'logrit-v185-smart-parser';
 const ASSETS = [
   '/ROGRIT/',
   '/ROGRIT/index.html',
