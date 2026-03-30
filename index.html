@@ -11,8 +11,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- 무한루프를 일으키던 강제 새로고침 스크립트 완전 삭제 완료 -->
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
         :root {
@@ -44,8 +42,11 @@
         .sun { color: var(--sun-color) !important; } .sat { color: var(--sat-color) !important; }
         .input-field { width: 100%; background-color: rgba(255,255,255,0.05); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 16px; color: var(--text-bold); outline: none; font-size: 16px; }
         .btn-primary { width: 100%; background-color: var(--brand-color); color: #ffffff; padding: 18px; border-radius: 14px; font-weight: 900; }
-        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background-color: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 13px; z-index: 300; opacity: 0; visibility: hidden; transition: 0.3s; }
+        
+        /* V195: 토스트 메시지를 화면 상단으로 이동하고 클릭을 무시하게 설정 (버튼 안 가림) */
+        #toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background-color: rgba(30, 41, 59, 0.95); color: white; padding: 14px 28px; border-radius: 50px; font-size: 14px; font-weight: bold; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; pointer-events: none; backdrop-filter: blur(10px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); }
         #toast.visible { opacity: 1; visibility: visible; }
+        
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
@@ -56,7 +57,7 @@
             <div class="w-8 h-8 bg-indigo-600 flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm">L</div>
             <div class="flex flex-col text-left">
                 <span class="font-bold text-sm tracking-tighter text-important">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V194 Stable</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V195 Fix</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -78,7 +79,6 @@
     <div id="toast">알림</div>
 
     <script>
-        // 안전한 DB 로드
         const STORAGE_KEY = 'logrit_v130_master_storage';
         let db = [];
         try { 
@@ -322,7 +322,6 @@
                         </div>
                         <button onclick="openImportModal()" class="w-full p-5 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl"><i data-lucide="download-cloud"></i> 외부 일정 스마트 가져오기</button>
                         <div class="pt-10 border-t border-white/5 space-y-4">
-                            <button onclick="window.location.reload(true)" class="w-full p-5 bg-zinc-800 rounded-2xl font-bold text-left opacity-70">캐시 강제 지우기 (화면 오류 시)</button>
                             <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();}" class="w-full p-5 text-red-500 font-bold text-left opacity-40">전체 데이터 초기화</button>
                         </div>
                     </div>`;
@@ -367,6 +366,7 @@
             }
         };
 
+        // V195: 간단달력메모 백업파일 쓰레기 데이터 완벽 필터링 파서
         window.openImportModal = () => {
             const html = `
             <div id="import-modal" class="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-5 text-important">
@@ -417,51 +417,116 @@
                 return;
             }
             
-            const lines = input.split('\n').map(l => l.trim());
             tempItems = [];
-            let currentItem = null;
-            const currentYear = new Date().getFullYear();
             
-            const srtTimeRegex = /^\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}$/;
-            const srtIndexRegex = /^\d+$/;
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                if (!line) continue;
-                if (srtTimeRegex.test(line)) continue;
-                if (srtIndexRegex.test(line) && i + 1 < lines.length && srtTimeRegex.test(lines[i+1])) continue;
-
-                let dMatchFull = line.match(/(20\d{2}|\d{2})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/);
-                let dMatchShort = line.match(/(?:^|\[|\s)(\d{1,2})\s*[-./월]\s*(\d{1,2})[일\]\s]*/);
-                let dMatchFlat = line.match(/^(20\d{2})(\d{2})(\d{2})$/);
+            // V195: 간단달력메모 백업파일인 경우 전용 로직 실행 (지저분한 암호문 제거)
+            if (input.includes('CALENDAR_CIFALSE') || input.includes('BLACK_NULL')) {
+                const lines = input.split('\n').map(l => l.trim());
+                let currentItem = null;
                 
-                let tMatch = line.match(/(\d{1,2})시\s*(\d{1,2})?분?/) || line.match(/(\d{2}):(\d{2})/);
-                let amtMatch = line.match(/(\d{1,3}(,\d{3})+|\d{4,9})원/);
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i];
+                    if (!line) continue;
 
-                let dateFound = null;
-                if (dMatchFull) {
-                    let y = dMatchFull[1].length === 2 ? '20' + dMatchFull[1] : dMatchFull[1];
-                    dateFound = `${y}-${String(dMatchFull[2]).padStart(2,'0')}-${String(dMatchFull[3]).padStart(2,'0')}`;
+                    // 헤더, 불필요한 태그 등 쓰레기 데이터 스킵
+                    if (line.startsWith('<') && line.endsWith('>') && !line.includes('>>>')) continue;
+                    if (line.includes('CALENDAR_CIFALSE')) continue;
+
+                    // 간단달력메모 특유의 날짜 태그 추출 (예: <2021_6_28>>>...)
+                    let dateMatch = line.match(/^<(\d{4})_(\d{1,2})_(\d{1,2})>>>/);
+                    if (dateMatch) {
+                        if (currentItem && currentItem.note) tempItems.push(currentItem);
+                        
+                        let y = dateMatch[1];
+                        let m = dateMatch[2].padStart(2, '0');
+                        let d = dateMatch[3].padStart(2, '0');
+                        
+                        currentItem = { 
+                            id: Date.now() + Math.random(), 
+                            date: `${y}-${m}-${d}`, 
+                            time: '10:00', 
+                            note: '', 
+                            amount: 0, supplier: '미지정', people: 1 
+                        };
+                    } else if (currentItem) {
+                        // "카테고리;;;;내용" 형태에서 "카테고리;;;;" 암호 제거
+                        let cleanLine = line.replace(/^.*?;;;;/, '').trim();
+                        // 간혹 남는 잔여 암호 제거
+                        cleanLine = cleanLine.replace(/;;BLACK_NULL.*/, '').trim();
+
+                        if (cleanLine) {
+                            // 시간/금액 추출
+                            let tMatch = cleanLine.match(/(\d{1,2})시\s*(\d{1,2})?분?/) || cleanLine.match(/(\d{2}):(\d{2})/);
+                            if (tMatch && currentItem.time === '10:00') {
+                                let hour = tMatch[1] ? tMatch[1].padStart(2,'0') : "10";
+                                let min = (tMatch && tMatch[2]) ? tMatch[2].padStart(2,'0') : "00";
+                                currentItem.time = `${hour}:${min}`;
+                                cleanLine = cleanLine.replace(tMatch[0], '').trim();
+                            }
+                            
+                            let amtMatch = cleanLine.match(/(\d{1,3}(,\d{3})+|\d{4,9})원/);
+                            if (amtMatch && currentItem.amount === 0) {
+                                currentItem.amount = parseInt(amtMatch[1].replace(/,/g, ''));
+                                cleanLine = cleanLine.replace(amtMatch[0], '').trim();
+                            }
+
+                            cleanLine = cleanLine.replace(/^[-\s[\]]+/, '').trim();
+                            if(cleanLine) {
+                                currentItem.note += (currentItem.note ? '\n' : '') + cleanLine;
+                            }
+                        }
+                    }
                 }
-                else if (dMatchFlat) dateFound = `${dMatchFlat[1]}-${dMatchFlat[2]}-${dMatchFlat[3]}`;
-                else if (dMatchShort) dateFound = `${currentYear}-${String(dMatchShort[1]).padStart(2,'0')}-${String(dMatchShort[2]).padStart(2,'0')}`;
+                if (currentItem && currentItem.note) tempItems.push(currentItem);
+            } 
+            else {
+                // 일반 텍스트용 파서 (이전과 동일)
+                const lines = input.split('\n').map(l => l.trim());
+                let currentItem = null;
+                const currentYear = new Date().getFullYear();
+                
+                const srtTimeRegex = /^\d{2}:\d{2}:\d{2},\d{3}\s*-->\s*\d{2}:\d{2}:\d{2},\d{3}$/;
+                const srtIndexRegex = /^\d+$/;
 
-                if (dateFound) {
-                    let hour = tMatch ? tMatch[1].padStart(2,'0') : "10";
-                    let min = (tMatch && tMatch[2]) ? tMatch[2].padStart(2,'0') : "00";
-                    let amt = amtMatch ? parseInt(amtMatch[1].replace(/,/g,'')) : 0;
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line) continue;
+                    if (srtTimeRegex.test(line)) continue;
+                    if (srtIndexRegex.test(line) && i + 1 < lines.length && srtTimeRegex.test(lines[i+1])) continue;
+
+                    let dMatchFull = line.match(/(20\d{2}|\d{2})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/);
+                    let dMatchShort = line.match(/(?:^|\[|\s)(\d{1,2})\s*[-./월]\s*(\d{1,2})[일\]\s]*/);
+                    let dMatchFlat = line.match(/^(20\d{2})(\d{2})(\d{2})$/);
                     
-                    let cleanNote = line.replace(dMatchFull ? dMatchFull[0] : (dMatchShort ? dMatchShort[0] : (dMatchFlat ? dMatchFlat[0] : '')), '')
-                                        .replace(tMatch ? tMatch[0] : '', '').replace(amtMatch ? amtMatch[0] : '', '').replace(/^[-\s[\]]+/, '').trim();
+                    let tMatch = line.match(/(\d{1,2})시\s*(\d{1,2})?분?/) || line.match(/(\d{2}):(\d{2})/);
+                    let amtMatch = line.match(/(\d{1,3}(,\d{3})+|\d{4,9})원/);
 
-                    if (currentItem) tempItems.push(currentItem);
-                    currentItem = { id: Date.now() + '-' + i, date: dateFound, time: `${hour}:${min}`, note: cleanNote, amount: amt, supplier: "미지정", people: 1 };
-                } else {
-                    if (currentItem) currentItem.note += (currentItem.note ? '\n' : '') + line;
+                    let dateFound = null;
+                    if (dMatchFull) {
+                        let y = dMatchFull[1].length === 2 ? '20' + dMatchFull[1] : dMatchFull[1];
+                        dateFound = `${y}-${String(dMatchFull[2]).padStart(2,'0')}-${String(dMatchFull[3]).padStart(2,'0')}`;
+                    }
+                    else if (dMatchFlat) dateFound = `${dMatchFlat[1]}-${dMatchFlat[2]}-${dMatchFlat[3]}`;
+                    else if (dMatchShort) dateFound = `${currentYear}-${String(dMatchShort[1]).padStart(2,'0')}-${String(dMatchShort[2]).padStart(2,'0')}`;
+
+                    if (dateFound) {
+                        let hour = tMatch ? tMatch[1].padStart(2,'0') : "10";
+                        let min = (tMatch && tMatch[2]) ? tMatch[2].padStart(2,'0') : "00";
+                        let amt = amtMatch ? parseInt(amtMatch[1].replace(/,/g,'')) : 0;
+                        
+                        let cleanNote = line.replace(dMatchFull ? dMatchFull[0] : (dMatchShort ? dMatchShort[0] : (dMatchFlat ? dMatchFlat[0] : '')), '')
+                                            .replace(tMatch ? tMatch[0] : '', '').replace(amtMatch ? amtMatch[0] : '', '').replace(/^[-\s[\]]+/, '').trim();
+
+                        if (currentItem) tempItems.push(currentItem);
+                        currentItem = { id: Date.now() + '-' + i, date: dateFound, time: `${hour}:${min}`, note: cleanNote, amount: amt, supplier: "미지정", people: 1 };
+                    } else {
+                        if (currentItem) currentItem.note += (currentItem.note ? '\n' : '') + line;
+                    }
                 }
+                if (currentItem) tempItems.push(currentItem);
             }
-            if (currentItem) tempItems.push(currentItem);
 
+            // 결과 화면 그리기
             if (tempItems.length > 0) {
                 previewDiv.innerHTML = tempItems.map(it => `
                     <div class="p-3 bg-white/5 rounded-xl text-xs flex flex-col mb-2 border border-white/10">
@@ -476,7 +541,7 @@
                 btnsDiv.classList.remove('hidden');
                 showToast(`${tempItems.length}개의 일정을 찾았습니다.`);
             } else {
-                previewDiv.innerHTML = `<p class="text-red-400 p-4 text-center font-bold text-sm bg-red-900/20 rounded-xl">❌ 파일에서 올바른 날짜 형식을 찾지 못했습니다.</p>`;
+                previewDiv.innerHTML = `<p class="text-red-400 p-4 text-center font-bold text-sm bg-red-900/20 rounded-xl">❌ 파일에서 내용을 분리하지 못했습니다.</p>`;
                 btnsDiv.classList.add('hidden');
             }
         };
