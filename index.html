@@ -11,24 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- V192: 가장 안전한 캐시 자동 삭제 스크립트 (무한 루프 방지) -->
-    <script>
-        const APP_VERSION = 'v192';
-        if (localStorage.getItem('logrit_version') !== APP_VERSION) {
-            localStorage.setItem('logrit_version', APP_VERSION);
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    for(let registration of registrations) registration.unregister();
-                });
-            }
-            if(window.caches) {
-                caches.keys().then(function(names) {
-                    for (let name of names) caches.delete(name);
-                });
-            }
-            setTimeout(() => { window.location.reload(true); }, 300);
-        }
-    </script>
+    <!-- 무한루프를 일으키던 강제 새로고침 스크립트 완전 삭제 완료 -->
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
@@ -52,8 +35,11 @@
         .memo-cell { min-height: 115px; border-right: 0.5px solid var(--calendar-border); border-bottom: 0.5px solid var(--calendar-border); position: relative; cursor: pointer; display: flex; flex-direction: column; overflow: hidden; }
         .memo-cell.is-selected { background-color: rgba(99, 102, 241, 0.05); box-shadow: inset 0 0 0 2px var(--brand-color); z-index: 10; }
         .memo-cell:nth-child(7n) { border-right: none; }
-        .date-num { font-size: 16px; font-weight: 800; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; margin: 4px auto; transition: 0.2s; }
+        
+        .date-num { font-size: 16px; font-weight: 800; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin: 2px auto 0; transition: 0.2s; }
         .is-today .date-num { background: var(--brand-color); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        .holiday-text { font-size: 9.5px; font-weight: 800; color: var(--sun-color); text-align: center; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 2px; line-height: 1.1; letter-spacing: -0.05em; }
+        
         .memo-strip { font-size: 11px; padding: 2px 4px; color: var(--text-main); white-space: nowrap; overflow: hidden; font-weight: 600; letter-spacing: -0.05em; }
         .sun { color: var(--sun-color) !important; } .sat { color: var(--sat-color) !important; }
         .input-field { width: 100%; background-color: rgba(255,255,255,0.05); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 16px; color: var(--text-bold); outline: none; font-size: 16px; }
@@ -70,7 +56,7 @@
             <div class="w-8 h-8 bg-indigo-600 flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm">L</div>
             <div class="flex flex-col text-left">
                 <span class="font-bold text-sm tracking-tighter text-important">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V192 Fix</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V194 Stable</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -92,7 +78,7 @@
     <div id="toast">알림</div>
 
     <script>
-        // 오류로 앱이 뻗지 않도록 데이터 로드 부분에 안전망(try-catch) 추가
+        // 안전한 DB 로드
         const STORAGE_KEY = 'logrit_v130_master_storage';
         let db = [];
         try { 
@@ -111,7 +97,6 @@
         
         let currentNav = 'e_cal', currentEditId = null, calContext = new Date(), selectedDate = null, searchTerm = "";
         let filterMonth = null, startX = 0, startY = 0;
-        const monthNamesEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
         if ('serviceWorker' in navigator) { 
             window.addEventListener('load', () => { navigator.serviceWorker.register('/ROGRIT/sw.js').catch(()=>{}); }); 
@@ -161,6 +146,44 @@
             return tA - tB;
         });
 
+        // 공휴일 & 기독교 절기
+        const lunarHolidays = {
+            '2024-02-09':'설날연휴', '2024-02-10':'설날', '2024-02-11':'설날연휴', '2024-02-12':'대체공휴일', '2024-05-15':'부처님오신날', '2024-09-16':'추석연휴', '2024-09-17':'추석', '2024-09-18':'추석연휴',
+            '2025-01-28':'설날연휴', '2025-01-29':'설날', '2025-01-30':'설날연휴', '2025-05-05':'부처님오신날', '2025-05-06':'대체공휴일', '2025-10-05':'추석연휴', '2025-10-06':'추석', '2025-10-07':'추석연휴', '2025-10-08':'대체공휴일', '2025-10-09':'한글날(대체)',
+            '2026-02-16':'설날연휴', '2026-02-17':'설날', '2026-02-18':'설날연휴', '2026-05-24':'부처님오신날', '2026-05-25':'대체공휴일', '2026-09-24':'추석연휴', '2026-09-25':'추석', '2026-09-26':'추석연휴',
+            '2027-02-06':'설날연휴', '2027-02-07':'설날', '2027-02-08':'설날연휴', '2027-02-09':'대체공휴일', '2027-05-13':'부처님오신날', '2027-09-14':'추석연휴', '2027-09-15':'추석', '2027-09-16':'추석연휴'
+        };
+
+        function getHoliday(y, m, d) {
+            const mm = String(m).padStart(2, '0');
+            const dd = String(d).padStart(2, '0');
+            const dStr = `${y}-${mm}-${dd}`;
+            
+            if (mm === '01' && dd === '01') return '신정';
+            if (mm === '03' && dd === '01') return '삼일절';
+            if (mm === '05' && dd === '05') return '어린이날';
+            if (mm === '06' && dd === '06') return '현충일';
+            if (mm === '08' && dd === '15') return '광복절';
+            if (mm === '10' && dd === '03') return '개천절';
+            if (mm === '10' && dd === '09') return '한글날';
+            if (mm === '12' && dd === '25') return '성탄절';
+
+            const f = Math.floor, G = y % 19, C = f(y / 100);
+            const H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30;
+            const I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11));
+            const J = (y + f(y / 4) + I + 2 - C + f(C / 4)) % 7;
+            const L = I - J, eMonth = 3 + f((L + 40) / 44), eDay = L + 28 - 31 * f(eMonth / 4);
+            if (m === eMonth && d === eDay) return '부활절';
+
+            let nov1 = new Date(y, 10, 1);
+            let offset = nov1.getDay() === 0 ? 0 : 7 - nov1.getDay();
+            let thanksDay = 1 + offset + 14;
+            if (m === 11 && d === thanksDay) return '추수감사';
+
+            if (lunarHolidays[dStr]) return lunarHolidays[dStr];
+            return null;
+        }
+
         function renderItemCard(item, showDate = false, cumulativeSum = null, forceAlwaysShow = false) {
             const note = cleanText(item.note); const supp = cleanText(item.supplier); const dept = cleanText(item.departure); const arrv = cleanText(item.arrival);
             const shouldHide = !forceAlwaysShow && !showAmounts;
@@ -183,7 +206,6 @@
                 </div>`;
         }
 
-        // V192: 매출 탭에서 거래처 누르면 그 달의 내역만 필터링!
         window.viewSupplierMonthly = (supplier) => {
             filterMonth = `${calContext.getFullYear()}-${String(calContext.getMonth()+1).padStart(2,'0')}`;
             searchTerm = supplier.toLowerCase(); 
@@ -192,7 +214,6 @@
             window.scrollTo(0,0);
         };
 
-        // V192: 기록 리스트 출력 공통 함수
         window.renderListContent = () => {
             const listContainer = document.getElementById('record-list-content');
             if (listContainer) {
@@ -223,10 +244,18 @@
                     const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     const items = sortMaster(db.filter(x => x.date === dStr));
                     const isT = dStr === todayStr;
-                    const dCls = (start+d-1)%7 === 0 ? 'sun' : ((start+d-1)%7 === 6 ? 'sat' : '');
+                    let dCls = (start+d-1)%7 === 0 ? 'sun' : ((start+d-1)%7 === 6 ? 'sat' : '');
+                    
+                    const holName = getHoliday(y, m+1, d);
+                    if (holName) dCls = 'sun'; 
+                    const holHtml = holName ? `<div class="holiday-text">${holName}</div>` : '';
+
                     gridHtml += `<div onclick="handleDateTouch('${dStr}');" class="memo-cell ${isT?'is-today':''} ${selectedDate===dStr?'is-selected':''}">
-                        <div class="date-num ${dCls}">${d}</div>
-                        <div class="flex-1 overflow-hidden">${items.map(it => `<div class="memo-strip">${smartTimeFormat(it.time)} ${cleanText(it.supplier, it.note.substring(0,5))}</div>`).join('')}</div>
+                        <div class="flex flex-col items-center justify-start shrink-0 w-full min-h-[36px]">
+                            <div class="date-num ${dCls}">${d}</div>
+                            ${holHtml}
+                        </div>
+                        <div class="flex-1 overflow-hidden px-0.5 mt-0.5">${items.map(it => `<div class="memo-strip">${smartTimeFormat(it.time)} ${cleanText(it.supplier, it.note.substring(0,5))}</div>`).join('')}</div>
                     </div>`;
                 }
                 root.innerHTML = `
@@ -293,7 +322,7 @@
                         </div>
                         <button onclick="openImportModal()" class="w-full p-5 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl"><i data-lucide="download-cloud"></i> 외부 일정 스마트 가져오기</button>
                         <div class="pt-10 border-t border-white/5 space-y-4">
-                            <button onclick="window.location.reload(true)" class="w-full p-5 bg-zinc-800 rounded-2xl font-bold text-left opacity-70">앱 강제 새로고침</button>
+                            <button onclick="window.location.reload(true)" class="w-full p-5 bg-zinc-800 rounded-2xl font-bold text-left opacity-70">캐시 강제 지우기 (화면 오류 시)</button>
                             <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();}" class="w-full p-5 text-red-500 font-bold text-left opacity-40">전체 데이터 초기화</button>
                         </div>
                     </div>`;
