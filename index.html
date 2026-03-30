@@ -11,6 +11,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- V192: 가장 안전한 캐시 자동 삭제 스크립트 (무한 루프 방지) -->
+    <script>
+        const APP_VERSION = 'v192';
+        if (localStorage.getItem('logrit_version') !== APP_VERSION) {
+            localStorage.setItem('logrit_version', APP_VERSION);
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) registration.unregister();
+                });
+            }
+            if(window.caches) {
+                caches.keys().then(function(names) {
+                    for (let name of names) caches.delete(name);
+                });
+            }
+            setTimeout(() => { window.location.reload(true); }, 300);
+        }
+    </script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
         :root {
@@ -51,7 +70,7 @@
             <div class="w-8 h-8 bg-indigo-600 flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm">L</div>
             <div class="flex flex-col text-left">
                 <span class="font-bold text-sm tracking-tighter text-important">로그릿</span>
-                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V189 Stable</span>
+                <span class="text-[7px] font-medium text-indigo-400 tracking-widest uppercase">Master V192 Fix</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -73,13 +92,13 @@
     <div id="toast">알림</div>
 
     <script>
-        // V189: 안전망 강화 (데이터 깨짐으로 인한 먹통 방지)
+        // 오류로 앱이 뻗지 않도록 데이터 로드 부분에 안전망(try-catch) 추가
         const STORAGE_KEY = 'logrit_v130_master_storage';
         let db = [];
         try { 
             db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); 
             if (!Array.isArray(db)) db = [];
-        } catch(e) { db = []; }
+        } catch(e) { db = []; console.error('DB Load Error'); }
 
         let isLightMode = false;
         try { isLightMode = JSON.parse(localStorage.getItem('theme_is_light') || 'false'); } catch(e) {}
@@ -95,19 +114,27 @@
         const monthNamesEn = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
         if ('serviceWorker' in navigator) { 
-            window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('/ROGRIT/sw.js').catch(()=>{}); 
-            }); 
+            window.addEventListener('load', () => { navigator.serviceWorker.register('/ROGRIT/sw.js').catch(()=>{}); }); 
         }
 
         window.onload = () => { applyTheme(); render(); lucide.createIcons(); };
-        function sync() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); render(); lucide.createIcons(); }
+        
+        function sync() { 
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e){ alert('용량 초과! 오래된 데이터를 지워주세요.'); }
+            render(); lucide.createIcons(); 
+        }
+        
         function formatKRW(v) { return new Intl.NumberFormat('ko-KR').format(v || 0); }
         function getLocalToday() { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
         function applyTheme() { document.body.classList.toggle('light-mode', isLightMode); }
-        window.showToast = (msg) => { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 3000); };
+        window.showToast = (msg) => { const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 2500); };
         window.toggleTheme = () => { isLightMode = !isLightMode; applyTheme(); render(); localStorage.setItem('theme_is_light', isLightMode); };
-        window.navTo = (nav) => { currentNav = nav; selectedDate = null; searchTerm = ""; filterMonth = null; render(); window.scrollTo(0,0); };
+        
+        window.navTo = (nav) => { 
+            currentNav = nav; selectedDate = null; searchTerm = ""; filterMonth = null; 
+            render(); window.scrollTo(0,0); 
+        };
+        
         window.moveMonth = (v) => { calContext = new Date(calContext.getFullYear(), calContext.getMonth() + v, 1); selectedDate = null; render(); };
         window.goToToday = () => { const today = getLocalToday(); calContext = new Date(); selectedDate = today; currentNav = 'e_cal'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); openDailyModal(today); };
         window.openSettings = () => { currentNav = 'settings'; render(); };
@@ -156,6 +183,32 @@
                 </div>`;
         }
 
+        // V192: 매출 탭에서 거래처 누르면 그 달의 내역만 필터링!
+        window.viewSupplierMonthly = (supplier) => {
+            filterMonth = `${calContext.getFullYear()}-${String(calContext.getMonth()+1).padStart(2,'0')}`;
+            searchTerm = supplier.toLowerCase(); 
+            currentNav = 'list'; 
+            render();
+            window.scrollTo(0,0);
+        };
+
+        // V192: 기록 리스트 출력 공통 함수
+        window.renderListContent = () => {
+            const listContainer = document.getElementById('record-list-content');
+            if (listContainer) {
+                let filtered = filterMonth ? db.filter(x => x.date.startsWith(filterMonth)) : db;
+                filtered = filtered.filter(it => (it.note||'').toLowerCase().includes(searchTerm) || (it.supplier||'').toLowerCase().includes(searchTerm));
+                filtered = sortMaster(filtered);
+                
+                let runningTotal = 0;
+                listContainer.innerHTML = filtered.map(x => {
+                    runningTotal += Number(x.amount || 0);
+                    return renderItemCard(x, true, runningTotal, true);
+                }).join('') || `<p class="text-center py-24 opacity-30 italic text-important">기록이 없습니다.</p>`;
+                lucide.createIcons();
+            }
+        };
+
         function render() {
             const root = document.getElementById('app-view');
             ['e_cal', 'list', 's_cal', 'home'].forEach(id => { const btn = document.getElementById('nav-' + id); if(btn) btn.style.color = currentNav === id ? '#6366f1' : '#64748b'; });
@@ -186,13 +239,21 @@
                         <div class="flex justify-center mt-20 mb-32"><div class="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10"><button onclick="moveMonth(-1)" class="p-4 active:scale-90"><i data-lucide="chevron-left" class="text-important"></i></button><button onclick="moveMonth(1)" class="p-4 active:scale-90"><i data-lucide="chevron-right" class="text-important"></i></button></div></div>
                     </div>`;
             } else if (currentNav === 'list') {
-                const filtered = sortMaster(db.filter(it => (it.note||'').toLowerCase().includes(searchTerm) || (it.supplier||'').toLowerCase().includes(searchTerm)));
-                let runningTotal = 0;
-                root.innerHTML = `<div class="px-5 py-6 text-important animate-in fade-in">
-                    <div class="py-4 sticky-sub top-[56px]"><input type="text" placeholder="검색..." class="input-field" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); renderListContent();"></div>
-                    <h2 class="text-2xl font-black mb-6">전체 기록 (과거순)</h2>
-                    <div id="record-list-content">${filtered.map(x => { runningTotal += Number(x.amount||0); return renderItemCard(x, true, runningTotal, true); }).join('') || '<p class="text-center py-20 opacity-30">기록이 없습니다.</p>'}</div>
-                </div>`;
+                const monthInfo = filterMonth ? `
+                    <div class="mt-3 px-1 text-indigo-500 font-bold text-xs uppercase flex justify-between items-center">
+                        <span>현재 ${parseInt(filterMonth.split('-')[1])}월 내역만 보는 중</span>
+                        <button onclick="navTo('list')" class="underline underline-offset-2 active:opacity-50">전체 보기</button>
+                    </div>` : "";
+                root.innerHTML = `
+                    <div class="px-5 py-6 text-important animate-in fade-in">
+                        <div class="py-4 sticky-sub top-[56px] bg-black/90 backdrop-blur">
+                            <input type="text" placeholder="검색..." class="input-field" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); window.renderListContent();">
+                            ${monthInfo}
+                        </div>
+                        <h2 class="text-2xl font-black mb-6 mt-4">기록 리스트 (과거순)</h2>
+                        <div id="record-list-content"></div>
+                    </div>`;
+                window.renderListContent();
             } else if (currentNav === 's_cal') {
                 const mData = sortMaster(db.filter(x => x.date.startsWith(mPrefix) && Number(x.amount)>0));
                 const total = mData.reduce((a,b)=>a+Number(b.amount), 0);
@@ -205,9 +266,9 @@
                             <p class="text-[11px] opacity-40 font-bold uppercase tracking-widest mt-1">${mPrefix} 통계 / ${mData.length}건의 기록</p>
                         </div>
                         <div class="px-5 pt-8">
-                            <h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest">거래처별 합계</h3>
+                            <h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest">거래처별 합계 (터치 시 해당 월 기록)</h3>
                             <div class="bg-zinc-950 light-mode:bg-white border border-white/5 overflow-hidden rounded-3xl mb-10">
-                                ${Object.entries(bySupp).sort((a,b)=>b[1].amount - a[1].amount).map(([n, d]) => `<div onclick="searchTerm='${n.toLowerCase()}'; currentNav='list'; render();" class="flex justify-between items-center p-5 border-b border-white/5 active:bg-indigo-500/10"><div class="flex flex-col gap-0.5"><span class="font-bold text-[14px]">${n}</span><span class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">${d.count}건</span></div><span class="font-black text-indigo-400 text-[16px]">${formatKRW(d.amount)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm">내역 없음</p>'}
+                                ${Object.entries(bySupp).sort((a,b)=>b[1].amount - a[1].amount).map(([n, d]) => `<div onclick="viewSupplierMonthly('${n}')" class="flex justify-between items-center p-5 border-b border-white/5 active:bg-indigo-500/10 cursor-pointer"><div class="flex flex-col gap-0.5"><span class="font-bold text-[14px]">${n}</span><span class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">${d.count}건</span></div><span class="font-black text-indigo-400 text-[16px]">${formatKRW(d.amount)}원</span></div>`).join('') || '<p class="p-16 text-center opacity-30 text-sm">내역 없음</p>'}
                             </div>
                             <h3 class="text-[11px] opacity-40 uppercase font-bold mb-4 px-1 tracking-widest">일별 매출 기록 (매출 / 일합계)</h3>
                             <div class="bg-zinc-900/30 light-mode:bg-slate-50 border border-white/5 rounded-3xl px-5 py-3 mb-20">
@@ -232,7 +293,7 @@
                         </div>
                         <button onclick="openImportModal()" class="w-full p-5 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl"><i data-lucide="download-cloud"></i> 외부 일정 스마트 가져오기</button>
                         <div class="pt-10 border-t border-white/5 space-y-4">
-                            <button onclick="location.reload(true)" class="w-full p-5 bg-zinc-800 rounded-2xl font-bold text-left opacity-70">앱 강제 새로고침</button>
+                            <button onclick="window.location.reload(true)" class="w-full p-5 bg-zinc-800 rounded-2xl font-bold text-left opacity-70">앱 강제 새로고침</button>
                             <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();}" class="w-full p-5 text-red-500 font-bold text-left opacity-40">전체 데이터 초기화</button>
                         </div>
                     </div>`;
