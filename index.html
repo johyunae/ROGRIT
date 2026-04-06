@@ -14,16 +14,15 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
         
-        /* V198: 라이트/다크모드 색상을 시스템 변수로 완전히 분리하여 오류 원천 차단 */
         :root {
             --bg-color: #000000; 
             --card-bg: #111111; 
-            --modal-bg: #18181b; /* zinc-900 */
+            --modal-bg: #18181b; 
             --nav-bg: rgba(24, 24, 27, 0.85);
-            --text-main: #94a3b8; /* slate-400 */
+            --text-main: #94a3b8; 
             --text-bold: #ffffff;
             --border-color: rgba(255,255,255,0.08);
-            --brand-color: #818cf8; /* 밝은 라벤더 보라 */
+            --brand-color: #818cf8; 
             --calendar-border: rgba(255,255,255,0.08);
             --sun-color: #ff4d4d; 
             --sat-color: #4d94ff;
@@ -31,16 +30,16 @@
             --sub-bg: rgba(255,255,255,0.05);
         }
         body.light-mode {
-            --bg-color: #f8fafc; /* slate-50 */
+            --bg-color: #f8fafc; 
             --card-bg: #ffffff; 
             --modal-bg: #ffffff;
             --nav-bg: rgba(255, 255, 255, 0.85);
-            --text-main: #64748b; /* slate-500 */
-            --text-bold: #0f172a; /* slate-900 */
+            --text-main: #64748b; 
+            --text-bold: #0f172a; 
             --border-color: rgba(0,0,0,0.08); 
-            --brand-color: #4f46e5; /* indigo-600 */
+            --brand-color: #4f46e5; 
             --calendar-border: #e2e8f0; 
-            --input-bg: #f1f5f9; /* slate-100 */
+            --input-bg: #f1f5f9; 
             --sub-bg: #f1f5f9;
         }
 
@@ -50,7 +49,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
         
-        /* 공통 커스텀 클래스 */
         .text-important { color: var(--text-bold) !important; }
         .text-dim { color: var(--text-main); }
         .bg-primary { background-color: var(--bg-color); }
@@ -78,14 +76,14 @@
         .input-field { width: 100%; background-color: var(--input-bg); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 16px; color: var(--text-bold); outline: none; font-size: 16px; font-weight: bold; transition: border-color 0.2s; }
         .input-field:focus { border-color: var(--brand-color); }
         
-        .btn-primary { width: 100%; background-color: var(--brand-color); color: #ffffff; padding: 18px; border-radius: 14px; font-weight: 900; font-size: 16px; transition: opacity 0.2s; }
+        .btn-primary { width: 100%; background-color: var(--brand-color); color: #ffffff; padding: 18px; border-radius: 14px; font-weight: 900; font-size: 16px; transition: opacity 0.2s; cursor: pointer; }
         .btn-primary:active { opacity: 0.8; }
         
-        .btn-close { background-color: var(--sub-bg); color: var(--text-bold); border: 1px solid var(--border-color); }
-        .btn-add { background-color: var(--sub-bg); color: var(--brand-color); border: 1.5px solid var(--border-color); }
-        .btn-del { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-close { background-color: var(--sub-bg); color: var(--text-bold); border: 1px solid var(--border-color); cursor: pointer; }
+        .btn-add { background-color: var(--sub-bg); color: var(--brand-color); border: 1.5px solid var(--border-color); cursor: pointer; }
+        .btn-del { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); cursor: pointer; }
         body.light-mode .btn-del { background-color: #fee2e2; color: #dc2626; border-color: #fca5a5; }
-        .btn-copy { background-color: var(--sub-bg); color: var(--text-bold); border: 1px solid var(--border-color); }
+        .btn-copy { background-color: var(--sub-bg); color: var(--text-bold); border: 1px solid var(--border-color); cursor: pointer; }
 
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background-color: var(--text-bold); color: var(--bg-color); padding: 14px 28px; border-radius: 50px; font-size: 14px; font-weight:bold; z-index: 9999; opacity: 0; visibility: hidden; transition: 0.3s; pointer-events: none; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); }
         #toast.visible { opacity: 1; visibility: visible; }
@@ -99,41 +97,61 @@
             <div class="w-8 h-8 bg-brand flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm">L</div>
             <div class="flex flex-col text-left">
                 <span class="font-bold text-[15px] tracking-tighter text-important leading-tight">로그릿</span>
-                <span class="text-[8px] font-bold tracking-widest uppercase leading-tight" style="color: var(--brand-color)">Master V198</span>
+                <span class="text-[8px] font-bold tracking-widest uppercase leading-tight" style="color: var(--brand-color)">Master V200</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="goToToday()" class="px-3 h-8 bg-brand text-[12px] font-bold text-white rounded-lg active:scale-95 transition-transform">오늘</button>
-            <button onclick="openSettings()" class="w-8 h-8 flex items-center justify-center text-dim active:scale-95 transition-transform"><i data-lucide="settings" class="w-6 h-6"></i></button>
+            <button onclick="goToToday()" class="px-3 h-8 bg-brand text-[12px] font-bold text-white rounded-lg active:scale-95 transition-transform cursor-pointer">오늘</button>
+            <button onclick="openSettings()" class="w-8 h-8 flex items-center justify-center text-dim active:scale-95 transition-transform cursor-pointer"><i data-lucide="settings" class="w-6 h-6"></i></button>
         </div>
     </div>
 
     <div id="app-view" class="w-full mx-auto pt-14 text-left min-h-screen"></div>
 
     <nav id="bottom-nav" class="fixed bottom-6 left-4 right-4 bg-nav backdrop-blur-xl border border-custom h-16 flex justify-around items-center z-[60] rounded-2xl shadow-2xl transition-colors">
-        <button onclick="navTo('e_cal')" id="nav-e_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim"><i data-lucide="calendar" class="w-6 h-6"></i><span class="text-[10px] font-bold">일정</span></button>
-        <button onclick="navTo('list')" id="nav-list" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim"><i data-lucide="clipboard-list" class="w-6 h-6"></i><span class="text-[10px] font-bold">기록</span></button>
-        <button onclick="navTo('s_cal')" id="nav-s_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim"><i data-lucide="trending-up" class="w-6 h-6"></i><span class="text-[10px] font-bold">매출</span></button>
-        <button onclick="navTo('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim"><i data-lucide="layout-grid" class="w-6 h-6"></i><span class="text-[10px] font-bold">홈</span></button>
+        <button onclick="navTo('e_cal')" id="nav-e_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim cursor-pointer"><i data-lucide="calendar" class="w-6 h-6"></i><span class="text-[10px] font-bold">일정</span></button>
+        <button onclick="navTo('list')" id="nav-list" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim cursor-pointer"><i data-lucide="clipboard-list" class="w-6 h-6"></i><span class="text-[10px] font-bold">기록</span></button>
+        <button onclick="navTo('s_cal')" id="nav-s_cal" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim cursor-pointer"><i data-lucide="trending-up" class="w-6 h-6"></i><span class="text-[10px] font-bold">매출</span></button>
+        <button onclick="navTo('home')" id="nav-home" class="flex flex-col items-center gap-1 transition-all flex-1 text-dim cursor-pointer"><i data-lucide="layout-grid" class="w-6 h-6"></i><span class="text-[10px] font-bold">홈</span></button>
     </nav>
 
-    <button onclick="openEntryModal()" class="fixed right-5 bottom-24 w-16 h-16 bg-brand rounded-3xl shadow-[0_10px_25px_rgba(99,102,241,0.4)] flex items-center justify-center z-[60] active:scale-90 transition-transform"><i data-lucide="plus" class="w-8 h-8 text-white"></i></button>
+    <button onclick="openEntryModal()" class="fixed right-5 bottom-24 w-16 h-16 bg-brand rounded-3xl shadow-[0_10px_25px_rgba(99,102,241,0.4)] flex items-center justify-center z-[60] active:scale-90 transition-transform cursor-pointer"><i data-lucide="plus" class="w-8 h-8 text-white"></i></button>
     <div id="toast">알림</div>
 
     <script>
+        // 에러를 원천 차단하는 가장 안전한 초기화 방식 적용
         const STORAGE_KEY = 'logrit_v130_master_storage';
         let db = [];
-        try { db = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); if (!Array.isArray(db)) db = []; } catch(e) { db = []; }
+        try { 
+            const rawData = localStorage.getItem(STORAGE_KEY);
+            db = rawData ? JSON.parse(rawData) : []; 
+            if (!Array.isArray(db)) db = []; 
+        } catch(e) { db = []; }
         
-        let isLightMode = false; try { isLightMode = JSON.parse(localStorage.getItem('theme_is_light') || 'false'); } catch(e) {}
-        let showAmounts = true; try { const s = localStorage.getItem('setting_show_amounts'); showAmounts = s !== null ? JSON.parse(s) : true; } catch(e) {}
+        let isLightMode = false; 
+        try { isLightMode = JSON.parse(localStorage.getItem('theme_is_light') || 'false'); } catch(e) {}
+        
+        let showAmounts = true; 
+        try { 
+            const s = localStorage.getItem('setting_show_amounts'); 
+            showAmounts = s !== null ? JSON.parse(s) : true; 
+        } catch(e) {}
         
         let currentNav = 'e_cal', currentEditId = null, calContext = new Date(), selectedDate = null, searchTerm = "", filterMonth = null;
         let startX = 0, startY = 0;
 
-        window.onload = () => { applyTheme(); render(); lucide.createIcons(); };
+        window.onload = () => { 
+            applyTheme(); 
+            render(); 
+            if (window.lucide) lucide.createIcons(); 
+        };
         
-        function sync() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e){} render(); lucide.createIcons(); }
+        function sync() { 
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e){ alert('용량 초과! 오래된 데이터를 정리해주세요.'); } 
+            render(); 
+            if (window.lucide) lucide.createIcons(); 
+        }
+        
         function formatKRW(v) { return new Intl.NumberFormat('ko-KR').format(v || 0); }
         function getLocalToday() { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
         function applyTheme() { document.body.classList.toggle('light-mode', isLightMode); }
@@ -184,7 +202,7 @@
             return null;
         }
 
-        // 공통 아이템 카드 렌더링 (모든 색상을 CSS 변수로 제어)
+        // V200: 시간 폰트 18px 유지 및 디자인 최적화
         function renderItemCard(item, showDate = false, cumulativeSum = null, forceAlwaysShow = false) {
             const note = cleanText(item.note); const supp = cleanText(item.supplier); const dept = cleanText(item.departure); const arrv = cleanText(item.arrival);
             const shouldHide = !forceAlwaysShow && !showAmounts;
@@ -193,9 +211,9 @@
                 if (!shouldHide) priceDisplay = cumulativeSum ? `💰 ${formatKRW(item.amount)} / ${formatKRW(cumulativeSum)}원` : `💰 ${formatKRW(item.amount)}원`;
             }
             return `
-                <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-[1.5rem] mb-3 border border-custom shadow-md text-left active:opacity-60 transition-all">
+                <div onclick="openEntryModal('${item.id}')" class="bg-card p-5 rounded-[1.5rem] mb-3 border border-custom shadow-md text-left active:opacity-60 transition-all cursor-pointer">
                     <div class="flex justify-between items-center border-b border-custom pb-3 mb-3">
-                        <span class="font-extrabold text-[15px] uppercase tracking-wide" style="color: var(--brand-color)">${showDate ? item.date+' ' : ''}${smartTimeFormat(item.time)}</span>
+                        <span class="font-extrabold text-[18px] uppercase tracking-wide" style="color: var(--brand-color)">${showDate ? item.date+' ' : ''}${smartTimeFormat(item.time)}</span>
                         <i data-lucide="chevron-right" class="w-5 h-5 text-dim opacity-60"></i>
                     </div>
                     <p class="font-black text-[20px] text-important leading-tight mb-3">${note || '일정 기록'}</p>
@@ -217,7 +235,7 @@
                 filtered = sortMaster(filtered);
                 let runningTotal = 0;
                 listContainer.innerHTML = filtered.map(x => { runningTotal += Number(x.amount || 0); return renderItemCard(x, true, runningTotal, true); }).join('') || `<p class="text-center py-24 opacity-50 font-bold text-[15px] text-dim">기록이 없습니다.</p>`;
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         };
 
@@ -251,10 +269,10 @@
                             <div class="grid grid-cols-7 text-center text-[12px] font-extrabold text-dim mt-5"><div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div></div>
                         </div>
                         <div class="calendar-grid">${gridHtml}</div>
-                        <div class="flex justify-center mt-20 mb-32"><div class="flex gap-1 bg-sub p-1 rounded-xl border border-custom"><button onclick="moveMonth(-1)" class="p-4 active:scale-90 text-important"><i data-lucide="chevron-left"></i></button><button onclick="moveMonth(1)" class="p-4 active:scale-90 text-important"><i data-lucide="chevron-right"></i></button></div></div>
+                        <div class="flex justify-center mt-20 mb-32"><div class="flex gap-1 bg-sub p-1 rounded-xl border border-custom"><button onclick="moveMonth(-1)" class="p-4 active:scale-90 text-important cursor-pointer"><i data-lucide="chevron-left"></i></button><button onclick="moveMonth(1)" class="p-4 active:scale-90 text-important cursor-pointer"><i data-lucide="chevron-right"></i></button></div></div>
                     </div>`;
             } else if (currentNav === 'list') {
-                const monthInfo = filterMonth ? `<div class="mt-3 px-1 font-bold text-[13px] uppercase flex justify-between items-center" style="color: var(--brand-color)"><span>현재 ${parseInt(filterMonth.split('-')[1])}월 내역만 보는 중</span><button onclick="navTo('list')" class="underline underline-offset-2 active:opacity-50">전체 보기</button></div>` : "";
+                const monthInfo = filterMonth ? `<div class="mt-3 px-1 font-bold text-[13px] uppercase flex justify-between items-center" style="color: var(--brand-color)"><span>현재 ${parseInt(filterMonth.split('-')[1])}월 내역만 보는 중</span><button onclick="navTo('list')" class="underline underline-offset-2 active:opacity-50 cursor-pointer">전체 보기</button></div>` : "";
                 root.innerHTML = `<div class="px-5 py-6 text-important animate-in fade-in"><div class="py-4 sticky-sub top-[56px] bg-primary"><input type="text" placeholder="검색어 입력..." class="input-field" value="${searchTerm}" oninput="searchTerm=this.value.toLowerCase(); window.renderListContent();">${monthInfo}</div><h2 class="text-2xl font-black mb-6 mt-4">기록 리스트 (과거순)</h2><div id="record-list-content"></div></div>`;
                 window.renderListContent();
             } else if (currentNav === 's_cal') {
@@ -286,28 +304,27 @@
                 root.innerHTML = `
                     <div class="px-6 py-10 space-y-6 text-important animate-in fade-in">
                         <h2 class="text-3xl font-black mb-10">시스템 설정</h2>
-                        <div class="flex justify-between items-center p-6 bg-card rounded-3xl border border-custom shadow-sm">
+                        <div class="flex justify-between items-center p-6 bg-card rounded-3xl border border-custom shadow-sm cursor-pointer" onclick="toggleTheme()">
                             <span class="font-bold text-[16px]">화이트 모드</span>
-                            <button onclick="toggleTheme()" class="w-14 h-8 rounded-full relative transition-colors shadow-inner" style="background-color: ${isLightMode ? 'var(--brand-color)' : 'var(--sub-bg)'}">
+                            <button class="w-14 h-8 rounded-full relative transition-colors shadow-inner" style="background-color: ${isLightMode ? 'var(--brand-color)' : 'var(--sub-bg)'}">
                                 <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform shadow-md" style="${isLightMode?'transform:translateX(24px)':''}"></div>
                             </button>
                         </div>
-                        <div class="flex justify-between items-center p-6 bg-card rounded-3xl border border-custom shadow-sm">
+                        <div class="flex justify-between items-center p-6 bg-card rounded-3xl border border-custom shadow-sm cursor-pointer" onclick="showAmounts=!showAmounts; localStorage.setItem('setting_show_amounts', showAmounts); render();">
                             <div class="flex flex-col"><span class="font-bold text-[16px]">달력 상세 금액 표시</span><span class="text-[12px] font-bold uppercase tracking-widest mt-1 text-dim">기록/매출 탭은 항상 표시됨</span></div>
-                            <button onclick="showAmounts=!showAmounts; localStorage.setItem('setting_show_amounts', showAmounts); render();" class="w-14 h-8 rounded-full relative transition-colors shadow-inner" style="background-color: ${showAmounts ? 'var(--brand-color)' : 'var(--sub-bg)'}">
+                            <button class="w-14 h-8 rounded-full relative transition-colors shadow-inner" style="background-color: ${showAmounts ? 'var(--brand-color)' : 'var(--sub-bg)'}">
                                 <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform shadow-md" style="${showAmounts?'transform:translateX(24px)':''}"></div>
                             </button>
                         </div>
-                        <button onclick="openImportModal()" class="w-full p-6 bg-brand rounded-3xl font-black flex items-center justify-center gap-3 shadow-lg text-[16px]"><i data-lucide="download-cloud"></i> 외부 일정 스마트 가져오기</button>
+                        <button onclick="openImportModal()" class="w-full p-6 bg-brand rounded-3xl font-black flex items-center justify-center gap-3 shadow-lg text-[16px] cursor-pointer"><i data-lucide="download-cloud"></i> 외부 일정 스마트 가져오기</button>
                         <div class="pt-10 border-t border-custom space-y-4">
-                            <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();}" class="w-full p-5 text-red-500 font-bold text-center opacity-70 text-[15px]">전체 데이터 초기화</button>
+                            <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();}" class="w-full p-5 text-red-500 font-bold text-center opacity-70 text-[15px] cursor-pointer border border-red-500/20 rounded-xl">전체 데이터 초기화</button>
                         </div>
                     </div>`;
             }
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
-        // 모달창 스와이프 기능 (어제/내일 이동)
         let mStartX = 0, mStartY = 0;
         window.modalTouchStart = (e) => { mStartX = e.touches[0].clientX; mStartY = e.touches[0].clientY; };
         window.modalTouchEnd = (e) => { 
@@ -354,7 +371,7 @@
                     + 이 날짜에 새 일정 추가
                 </button>
             `;
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         };
 
         window.openDailyModal = (dateStr) => {
@@ -392,7 +409,7 @@
                         <button onclick="document.getElementById('backup-file-input').click()" class="btn-copy flex-1 rounded-xl flex items-center justify-center gap-2 text-[15px] font-bold py-3">
                             <i data-lucide="file-text" class="w-5 h-5"></i> 백업파일(.srt) 열기
                         </button>
-                        <button onclick="processImport()" class="btn-primary flex-1 text-[15px] !py-3 !rounded-xl">직접 텍스트 분석</button>
+                        <button onclick="processImport()" class="btn-primary flex-1 text-[15px] !py-3 !rounded-xl">텍스트 자동 분석</button>
                     </div>
                     <input type="file" id="backup-file-input" accept=".srt,.txt" class="hidden" onchange="handleFileUpload(event)">
                     <textarea id="import-input" class="input-field h-36 p-4 text-[15px] mb-5 text-important" placeholder="여기에 내용을 붙여넣거나 위에 있는 [파일 열기]를 누르세요."></textarea>
@@ -403,7 +420,8 @@
                     </div>
                 </div>
             </div>`;
-            document.body.insertAdjacentHTML('beforeend', html); lucide.createIcons();
+            document.body.insertAdjacentHTML('beforeend', html); 
+            if (window.lucide) lucide.createIcons();
         };
 
         window.handleFileUpload = (e) => {
@@ -503,7 +521,8 @@
                     </div>
                 </form>
             </div></div>`;
-            document.body.insertAdjacentHTML('beforeend', html); lucide.createIcons();
+            document.body.insertAdjacentHTML('beforeend', html); 
+            if (window.lucide) lucide.createIcons();
         };
 
         window.startCopy = () => { currentEditId = null; document.getElementById('delete-btn')?.remove(); event.currentTarget.remove(); showToast("복사 완료! 다른 날짜에 저장하세요."); };
