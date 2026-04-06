@@ -15,32 +15,16 @@
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
         
         :root {
-            --bg-color: #000000; 
-            --card-bg: #111111; 
-            --modal-bg: #18181b; 
-            --nav-bg: rgba(24, 24, 27, 0.85);
-            --text-main: #94a3b8; 
-            --text-bold: #ffffff;
-            --border-color: rgba(255,255,255,0.08);
-            --brand-color: #818cf8; 
-            --calendar-border: rgba(255,255,255,0.08);
-            --sun-color: #ff4d4d; 
-            --sat-color: #4d94ff;
-            --input-bg: rgba(255,255,255,0.05);
-            --sub-bg: rgba(255,255,255,0.05);
+            --bg-color: #000000; --card-bg: #111111; --modal-bg: #18181b; --nav-bg: rgba(24, 24, 27, 0.85);
+            --text-main: #94a3b8; --text-bold: #ffffff; --border-color: rgba(255,255,255,0.08);
+            --brand-color: #818cf8; --calendar-border: rgba(255,255,255,0.08);
+            --sun-color: #ff4d4d; --sat-color: #4d94ff;
+            --input-bg: rgba(255,255,255,0.05); --sub-bg: rgba(255,255,255,0.05);
         }
         body.light-mode {
-            --bg-color: #f8fafc; 
-            --card-bg: #ffffff; 
-            --modal-bg: #ffffff;
-            --nav-bg: rgba(255, 255, 255, 0.85);
-            --text-main: #64748b; 
-            --text-bold: #0f172a; 
-            --border-color: rgba(0,0,0,0.08); 
-            --brand-color: #4f46e5; 
-            --calendar-border: #e2e8f0; 
-            --input-bg: #f1f5f9; 
-            --sub-bg: #f1f5f9;
+            --bg-color: #f8fafc; --card-bg: #ffffff; --modal-bg: #ffffff; --nav-bg: rgba(255, 255, 255, 0.85);
+            --text-main: #64748b; --text-bold: #0f172a; --border-color: rgba(0,0,0,0.08); 
+            --brand-color: #4f46e5; --calendar-border: #e2e8f0; --input-bg: #f1f5f9; --sub-bg: #f1f5f9;
         }
 
         body { 
@@ -97,7 +81,7 @@
             <div class="w-8 h-8 bg-brand flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm">L</div>
             <div class="flex flex-col text-left">
                 <span class="font-bold text-[15px] tracking-tighter text-important leading-tight">로그릿</span>
-                <span class="text-[8px] font-bold tracking-widest uppercase leading-tight" style="color: var(--brand-color)">Master V200</span>
+                <span class="text-[8px] font-bold tracking-widest uppercase leading-tight" style="color: var(--brand-color)">Master V201</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -119,7 +103,6 @@
     <div id="toast">알림</div>
 
     <script>
-        // 에러를 원천 차단하는 가장 안전한 초기화 방식 적용
         const STORAGE_KEY = 'logrit_v130_master_storage';
         let db = [];
         try { 
@@ -202,7 +185,6 @@
             return null;
         }
 
-        // V200: 시간 폰트 18px 유지 및 디자인 최적화
         function renderItemCard(item, showDate = false, cumulativeSum = null, forceAlwaysShow = false) {
             const note = cleanText(item.note); const supp = cleanText(item.supplier); const dept = cleanText(item.departure); const arrv = cleanText(item.arrival);
             const shouldHide = !forceAlwaysShow && !showAmounts;
@@ -301,29 +283,85 @@
                 const todayItems = sortMaster(db.filter(x => x.date === todayStr)), monthTotal = db.filter(x => x.date.startsWith(mPrefix)).reduce((acc, cur) => acc + (Number(cur.amount) || 0), 0);
                 root.innerHTML = `<div class="animate-in fade-in px-5 pt-4 text-important text-left"><div class="bg-modal p-8 mb-8 border border-custom shadow-lg rounded-[2.5rem] text-left"><p class="text-[13px] uppercase tracking-[0.2em] mb-2 font-bold text-dim">Monthly Total Rev</p><h2 class="text-5xl font-black tracking-tighter text-important">${formatKRW(monthTotal)}<span class="text-xl ml-1 font-light text-dim">원</span></h2><div class="mt-8 flex flex-col text-left"><span class="text-[13px] uppercase tracking-widest font-bold mb-1 text-dim">오늘 일정</span><span class="text-3xl font-black" style="color: var(--brand-color)">${todayItems.length}건</span></div></div><h3 class="text-[13px] uppercase px-1 mb-5 tracking-[0.3em] font-bold text-dim">Today's Activity</h3>${todayItems.map(it => renderItemCard(it, false, null, true)).join('') || '<p class="text-center py-20 text-dim text-[15px] font-bold">오늘 기록이 없습니다.</p>'}</div>`;
             } else if (currentNav === 'settings') {
+                // V201: 백업 & 복원 기능 UI 추가
                 root.innerHTML = `
                     <div class="px-6 py-10 space-y-6 text-important animate-in fade-in">
                         <h2 class="text-3xl font-black mb-10">시스템 설정</h2>
+                        
                         <div class="flex justify-between items-center p-6 bg-card rounded-3xl border border-custom shadow-sm cursor-pointer" onclick="toggleTheme()">
                             <span class="font-bold text-[16px]">화이트 모드</span>
                             <button class="w-14 h-8 rounded-full relative transition-colors shadow-inner" style="background-color: ${isLightMode ? 'var(--brand-color)' : 'var(--sub-bg)'}">
                                 <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform shadow-md" style="${isLightMode?'transform:translateX(24px)':''}"></div>
                             </button>
                         </div>
+                        
                         <div class="flex justify-between items-center p-6 bg-card rounded-3xl border border-custom shadow-sm cursor-pointer" onclick="showAmounts=!showAmounts; localStorage.setItem('setting_show_amounts', showAmounts); render();">
                             <div class="flex flex-col"><span class="font-bold text-[16px]">달력 상세 금액 표시</span><span class="text-[12px] font-bold uppercase tracking-widest mt-1 text-dim">기록/매출 탭은 항상 표시됨</span></div>
                             <button class="w-14 h-8 rounded-full relative transition-colors shadow-inner" style="background-color: ${showAmounts ? 'var(--brand-color)' : 'var(--sub-bg)'}">
                                 <div class="w-6 h-6 bg-white rounded-full absolute top-1 left-1 transition-transform shadow-md" style="${showAmounts?'transform:translateX(24px)':''}"></div>
                             </button>
                         </div>
-                        <button onclick="openImportModal()" class="w-full p-6 bg-brand rounded-3xl font-black flex items-center justify-center gap-3 shadow-lg text-[16px] cursor-pointer"><i data-lucide="download-cloud"></i> 외부 일정 스마트 가져오기</button>
+
+                        <div class="pt-6 pb-2">
+                            <h3 class="text-[13px] uppercase font-bold mb-3 px-1 tracking-widest text-dim">데이터 관리 (매우 중요)</h3>
+                            <div class="grid grid-cols-1 gap-3">
+                                <button onclick="openImportModal()" class="w-full p-5 bg-card border border-custom rounded-2xl font-bold flex items-center justify-between shadow-sm cursor-pointer active:opacity-70 text-[15px]">
+                                    <div class="flex items-center gap-3"><i data-lucide="calendar-plus" class="text-indigo-400"></i> 타사 앱(간단달력) 복원</div>
+                                    <i data-lucide="chevron-right" class="text-dim w-4 h-4"></i>
+                                </button>
+                                
+                                <button onclick="exportLogritData()" class="w-full p-5 bg-brand text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg text-[15px] cursor-pointer active:scale-95 transition-transform">
+                                    <i data-lucide="download"></i> 지금 내 로그릿 데이터 안전하게 백업(저장)
+                                </button>
+
+                                <button onclick="document.getElementById('logrit-restore-input').click()" class="w-full p-5 bg-card border border-custom rounded-2xl font-bold flex items-center justify-between shadow-sm cursor-pointer active:opacity-70 text-[15px]">
+                                    <div class="flex items-center gap-3"><i data-lucide="upload-cloud" class="text-green-500"></i> 로그릿 백업 파일로 복원하기</div>
+                                </button>
+                                <input type="file" id="logrit-restore-input" class="hidden" accept=".json" onchange="restoreLogritData(event)">
+                            </div>
+                        </div>
+                        
                         <div class="pt-10 border-t border-custom space-y-4">
-                            <button onclick="if(confirm('모든 데이터를 삭제할까요?')){db=[];sync();}" class="w-full p-5 text-red-500 font-bold text-center opacity-70 text-[15px] cursor-pointer border border-red-500/20 rounded-xl">전체 데이터 초기화</button>
+                            <button onclick="if(confirm('정말 모든 데이터를 완전히 삭제할까요? 되돌릴 수 없습니다.')){db=[];sync(); showToast('초기화 되었습니다.'); navTo('e_cal');}" class="w-full p-5 text-red-500 font-bold text-center opacity-70 text-[15px] cursor-pointer bg-red-500/10 rounded-2xl border border-red-500/20">전체 데이터 초기화</button>
                         </div>
                     </div>`;
             }
             if (window.lucide) lucide.createIcons();
         }
+
+        // V201: 로그릿 자체 백업 다운로드
+        window.exportLogritData = () => {
+            if(db.length === 0) { showToast("저장할 데이터가 없습니다."); return; }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", "logrit_backup_" + getLocalToday() + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showToast("백업 파일이 다운로드 되었습니다.");
+        };
+
+        // V201: 로그릿 자체 복원
+        window.restoreLogritData = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if(Array.isArray(parsed)) {
+                        db = parsed;
+                        sync();
+                        showToast("✅ 로그릿 데이터 복원이 완료되었습니다.");
+                        navTo('list');
+                    } else { throw new Error("Invalid format"); }
+                } catch(err) {
+                    showToast("❌ 올바른 로그릿 백업 파일(.json)이 아닙니다.");
+                }
+            };
+            reader.readAsText(file);
+        };
 
         let mStartX = 0, mStartY = 0;
         window.modalTouchStart = (e) => { mStartX = e.touches[0].clientX; mStartY = e.touches[0].clientY; };
@@ -402,14 +440,14 @@
             <div id="import-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-5 text-important">
                 <div class="bg-modal w-full max-w-lg rounded-3xl p-6 border border-custom shadow-2xl text-left">
                     <div class="flex justify-between items-center mb-5">
-                        <h3 class="text-xl font-bold">일정 스마트 가져오기</h3>
+                        <h3 class="text-xl font-bold">타사 앱(간단달력) 복원</h3>
                         <button onclick="document.getElementById('import-modal').remove()" class="p-2 btn-close rounded-full"><i data-lucide="x"></i></button>
                     </div>
                     <div class="flex gap-2 mb-4">
                         <button onclick="document.getElementById('backup-file-input').click()" class="btn-copy flex-1 rounded-xl flex items-center justify-center gap-2 text-[15px] font-bold py-3">
                             <i data-lucide="file-text" class="w-5 h-5"></i> 백업파일(.srt) 열기
                         </button>
-                        <button onclick="processImport()" class="btn-primary flex-1 text-[15px] !py-3 !rounded-xl">텍스트 자동 분석</button>
+                        <button onclick="processImport()" class="btn-primary flex-1 text-[15px] !py-3 !rounded-xl">수동 텍스트 분석</button>
                     </div>
                     <input type="file" id="backup-file-input" accept=".srt,.txt" class="hidden" onchange="handleFileUpload(event)">
                     <textarea id="import-input" class="input-field h-36 p-4 text-[15px] mb-5 text-important" placeholder="여기에 내용을 붙여넣거나 위에 있는 [파일 열기]를 누르세요."></textarea>
