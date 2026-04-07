@@ -11,6 +11,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- 에러 방지용 스크립트: 문제가 생기던 자동 새로고침 코드를 완전히 제거했습니다! -->
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap');
         
@@ -22,7 +24,7 @@
             --text-main: #94a3b8; 
             --text-bold: #ffffff;
             --border-color: rgba(255,255,255,0.08);
-            --brand-color: #818cf8; 
+            --brand-color: #818cf8; /* 밝은 라벤더 보라색 */
             --calendar-border: rgba(255,255,255,0.08);
             --sun-color: #ff4d4d; 
             --sat-color: #4d94ff;
@@ -97,7 +99,7 @@
             <div class="w-8 h-8 bg-brand flex items-center justify-center text-white font-black text-xl rounded-lg shadow-sm">L</div>
             <div class="flex flex-col text-left">
                 <span class="font-bold text-[15px] tracking-tighter text-important leading-tight">로그릿</span>
-                <span class="text-[8px] font-bold tracking-widest uppercase leading-tight" style="color: var(--brand-color)">Master V203</span>
+                <span class="text-[8px] font-bold tracking-widest uppercase leading-tight" style="color: var(--brand-color)">Master V205 Safe</span>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -119,6 +121,13 @@
     <div id="toast">알림</div>
 
     <script>
+        // 악성 서비스워커(캐시) 조용히 삭제
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let r of registrations) { r.unregister(); }
+            });
+        }
+
         const STORAGE_KEY = 'logrit_v130_master_storage';
         let db = [];
         try { 
@@ -140,13 +149,27 @@
         let startX = 0, startY = 0;
 
         window.onload = () => { 
-            applyTheme(); 
-            render(); 
-            if (window.lucide) lucide.createIcons(); 
+            try {
+                applyTheme(); 
+                render(); 
+                if (window.lucide) lucide.createIcons(); 
+                
+                // 임시저장 데이터 복원
+                const draftStr = localStorage.getItem('logrit_draft_data');
+                if (draftStr) {
+                    const draft = JSON.parse(draftStr);
+                    if (draft && draft.isOpen) {
+                        openEntryModal(draft.id, null, draft);
+                        showToast("작성 중이던 내용을 복구했습니다.");
+                    }
+                }
+            } catch(e) {
+                console.error(e);
+            }
         };
         
         function sync() { 
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e){ alert('용량 초과! 오래된 데이터를 정리해주세요.'); } 
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); } catch(e){ alert('용량 초과! 데이터를 백업하고 비워주세요.'); } 
             render(); 
             if (window.lucide) lucide.createIcons(); 
         }
@@ -166,7 +189,7 @@
         window.ontouchstart = (e) => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; };
         window.ontouchend = (e) => { 
             if (currentNav !== 'e_cal') return;
-            if (document.getElementById('daily-modal-container')) return; 
+            if (document.getElementById('daily-modal-container') || document.getElementById('modal-container')) return; 
             const diffX = startX - e.changedTouches[0].clientX; 
             const diffY = startY - e.changedTouches[0].clientY;
             if (Math.abs(diffX) > Math.abs(diffY) * 2.5 && Math.abs(diffX) > 80) {
@@ -201,6 +224,7 @@
             return null;
         }
 
+        // 시간 폰트 18px 확대 (V199 기능)
         function renderItemCard(item, showDate = false, cumulativeSum = null, forceAlwaysShow = false) {
             const note = cleanText(item.note); const supp = cleanText(item.supplier); const dept = cleanText(item.departure); const arrv = cleanText(item.arrival);
             const shouldHide = !forceAlwaysShow && !showAmounts;
@@ -318,7 +342,7 @@
                         </div>
 
                         <div class="pt-6 pb-2">
-                            <h3 class="text-[13px] uppercase font-bold mb-3 px-1 tracking-widest text-dim">데이터 관리</h3>
+                            <h3 class="text-[13px] uppercase font-bold mb-3 px-1 tracking-widest text-dim">데이터 복구 및 관리</h3>
                             <div class="grid grid-cols-1 gap-3">
                                 <button onclick="openImportModal()" class="w-full p-5 bg-card border border-custom rounded-2xl font-bold flex items-center justify-between shadow-sm cursor-pointer active:opacity-70 text-[15px]">
                                     <div class="flex items-center gap-3"><i data-lucide="calendar-plus" class="text-indigo-400"></i> 타사 앱(간단달력) 복원</div>
@@ -326,7 +350,7 @@
                                 </button>
                                 
                                 <button onclick="exportLogritData()" class="w-full p-5 bg-brand text-white rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg text-[15px] cursor-pointer active:scale-95 transition-transform">
-                                    <i data-lucide="download"></i> 지금 내 로그릿 데이터 백업
+                                    <i data-lucide="download"></i> 내 로그릿 데이터 안전하게 백업
                                 </button>
 
                                 <button onclick="document.getElementById('logrit-restore-input').click()" class="w-full p-5 bg-card border border-custom rounded-2xl font-bold flex items-center justify-between shadow-sm cursor-pointer active:opacity-70 text-[15px]">
@@ -376,6 +400,7 @@
             reader.readAsText(file);
         };
 
+        // 모달창 스와이프
         let mStartX = 0, mStartY = 0;
         window.modalTouchStart = (e) => { mStartX = e.touches[0].clientX; mStartY = e.touches[0].clientY; };
         window.modalTouchEnd = (e) => { 
@@ -448,6 +473,7 @@
             }
         };
 
+        // 타사 앱 파서
         window.openImportModal = () => {
             const html = `
             <div id="import-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-5 text-important">
@@ -477,7 +503,7 @@
         window.handleFileUpload = (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            showToast("파일을 번역 중입니다...");
+            showToast("파일을 분석 중입니다...");
             
             const tryRead = (encoding) => {
                 const reader = new FileReader();
@@ -583,18 +609,49 @@
 
         window.saveImported = () => { db = [...db, ...tempItems]; sync(); document.getElementById('import-modal').remove(); showToast(`✅ 성공적으로 복원되었습니다!`); navTo('list'); };
 
-        window.openEntryModal = (id = null, presetDate = null) => {
-            closeDailyModal(); currentEditId = id ? String(id) : null;
+        // V204: 실시간 임시저장
+        window.saveDraft = () => {
+            const fDateEl = document.getElementById('f-date');
+            if(!fDateEl) return; // 모달이 열려있을 때만 작동
+            const draft = {
+                isOpen: true,
+                id: currentEditId,
+                date: fDateEl.value || '',
+                departure: document.getElementById('f-departure')?.value || '',
+                arrival: document.getElementById('f-arrival')?.value || '',
+                time: document.getElementById('f-time')?.value || '',
+                people: document.getElementById('f-people')?.value || '',
+                supplier: document.getElementById('f-supplier')?.value || '',
+                amount: document.getElementById('f-amount-display')?.value || '',
+                note: document.getElementById('f-note')?.value || ''
+            };
+            localStorage.setItem('logrit_draft_data', JSON.stringify(draft));
+        };
+
+        window.closeEntryModal = () => {
+            document.getElementById('modal-container')?.remove();
+            localStorage.removeItem('logrit_draft_data'); 
+        };
+
+        window.openEntryModal = (id = null, presetDate = null, draftData = null) => {
+            closeDailyModal(); 
+            currentEditId = draftData ? draftData.id : (id ? String(id) : null);
             const it = id ? db.find(x => String(x.id) === id) : null;
+            const defaultDate = draftData ? draftData.date : (it ? it.date : (presetDate || selectedDate || getLocalToday()));
+            
+            const isDraft = draftData ? '<span class="text-xs font-normal text-indigo-400 ml-2">(작성중 복구됨)</span>' : '';
+
             let html = `<div id="modal-container" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[200] flex items-end text-left"><div class="bg-modal w-full max-w-md mx-auto rounded-t-[2.5rem] p-7 pb-12 overflow-y-auto max-h-[95vh] text-important text-left shadow-[0_-10px_40px_rgba(0,0,0,0.3)] border-t border-custom">
-                <div class="flex justify-between items-center mb-6 text-important"><h3 class="text-2xl font-black">일정 기록</h3><button onclick="document.getElementById('modal-container').remove()" class="p-2.5 btn-close rounded-full active:scale-95"><i data-lucide="x" class="w-6 h-6"></i></button></div>
-                <form id="record-form" onsubmit="window.saveRecord(event)" class="space-y-4">
-                    <input type="date" id="f-date" class="input-field" required value="${it?it.date:(presetDate||selectedDate||getLocalToday())}">
-                    <div class="grid grid-cols-2 gap-3"><input type="text" id="f-departure" placeholder="출발지" value="${it?it.departure||'':''}" class="input-field"> <input type="text" id="f-arrival" placeholder="도착지" value="${it?it.arrival||'':''}" class="input-field"></div>
-                    <div class="grid grid-cols-2 gap-3"><input type="text" id="f-time" placeholder="예: 710, 1430" maxlength="5" inputmode="numeric" oninput="window.autoFormatTime(this)" onblur="window.formatTimeOnBlur(this)" value="${it?it.time||'':''}" class="input-field font-mono"> <input type="number" id="f-people" placeholder="인원" value="${it?it.people||'':''}" class="input-field"></div>
-                    <input type="text" id="f-supplier" placeholder="거래처명" value="${it?it.supplier==='미지정'?'':it.supplier:''}" class="input-field">
-                    <div class="relative w-full text-important"><input type="text" id="f-amount-display" placeholder="매출 금액" inputmode="numeric" oninput="window.handleAmountInput(this)" value="${it?it.amount?Number(it.amount).toLocaleString():'':''}" class="input-field font-black text-2xl pr-10 text-important" style="color: var(--brand-color)"><span class="absolute right-5 top-1/2 -translate-y-1/2 opacity-60 font-bold text-[16px] text-dim">원</span></div>
-                    <textarea id="f-note" placeholder="상세 메모" class="input-field h-36 p-5 leading-relaxed text-[16px]">${it?it.note==='내용없음'||it.note==='내용 없음'?'':it.note:''}</textarea>
+                <div class="flex justify-between items-center mb-6 text-important"><h3 class="text-2xl font-black">일정 기록${isDraft}</h3><button type="button" onclick="closeEntryModal()" class="p-2.5 btn-close rounded-full active:scale-95"><i data-lucide="x" class="w-6 h-6"></i></button></div>
+                <form id="record-form" onsubmit="window.saveRecord(event)" oninput="window.saveDraft()">
+                    <div class="space-y-4">
+                        <input type="date" id="f-date" class="input-field" required>
+                        <div class="grid grid-cols-2 gap-3"><input type="text" id="f-departure" placeholder="출발지" class="input-field"> <input type="text" id="f-arrival" placeholder="도착지" class="input-field"></div>
+                        <div class="grid grid-cols-2 gap-3"><input type="text" id="f-time" placeholder="예: 710, 1430" maxlength="5" inputmode="numeric" oninput="window.autoFormatTime(this); window.saveDraft();" onblur="window.formatTimeOnBlur(this); window.saveDraft();" class="input-field font-mono"> <input type="number" id="f-people" placeholder="인원" class="input-field"></div>
+                        <input type="text" id="f-supplier" placeholder="거래처명" class="input-field">
+                        <div class="relative w-full text-important"><input type="text" id="f-amount-display" placeholder="매출 금액" inputmode="numeric" oninput="window.handleAmountInput(this); window.saveDraft();" class="input-field font-black text-2xl pr-10 text-important" style="color: var(--brand-color)"><span class="absolute right-5 top-1/2 -translate-y-1/2 opacity-60 font-bold text-[16px] text-dim">원</span></div>
+                        <textarea id="f-note" placeholder="상세 메모" class="input-field h-36 p-5 leading-relaxed text-[16px]"></textarea>
+                    </div>
                     <div id="form-actions" class="flex gap-3 mt-8">
                         ${id ? `<button type="button" onclick="window.deleteItemDirect('${id}')" id="delete-btn" class="flex-1 btn-del py-4.5 rounded-2xl font-bold text-center text-[16px]">삭제</button>` : ''}
                         ${id ? `<button type="button" onclick="window.startCopy()" class="flex-1 btn-copy py-4.5 rounded-2xl font-bold text-center text-[16px]">복사</button>` : ''}
@@ -603,12 +660,22 @@
                 </form>
             </div></div>`;
             document.body.insertAdjacentHTML('beforeend', html); 
+            
+            document.getElementById('f-date').value = defaultDate;
+            document.getElementById('f-departure').value = draftData ? draftData.departure : (it ? it.departure || '' : '');
+            document.getElementById('f-arrival').value = draftData ? draftData.arrival : (it ? it.arrival || '' : '');
+            document.getElementById('f-time').value = draftData ? draftData.time : (it ? it.time || '' : '');
+            document.getElementById('f-people').value = draftData ? draftData.people : (it ? it.people || '' : '');
+            document.getElementById('f-supplier').value = draftData ? draftData.supplier : (it ? (it.supplier==='미지정'?'':it.supplier) : '');
+            document.getElementById('f-amount-display').value = draftData ? draftData.amount : (it ? (it.amount ? Number(it.amount).toLocaleString() : '') : '');
+            document.getElementById('f-note').value = draftData ? draftData.note : (it ? (it.note==='내용없음'||it.note==='내용 없음'?'':it.note) : '');
+
             if (window.lucide) lucide.createIcons();
         };
 
-        window.startCopy = () => { currentEditId = null; document.getElementById('delete-btn')?.remove(); event.currentTarget.remove(); showToast("복사 완료! 다른 날짜에 저장하세요."); };
-        window.saveRecord = (e) => { e.preventDefault(); const raw = document.getElementById('f-amount-display').value.replace(/[^0-9]/g, ''); const record = { id: currentEditId || String(Date.now()), date: document.getElementById('f-date').value, amount: parseInt(raw || 0), supplier: document.getElementById('f-supplier').value.trim() || "미지정", note: document.getElementById('f-note').value.trim() || "내용없음", time: document.getElementById('f-time').value, departure: document.getElementById('f-departure').value, arrival: document.getElementById('f-arrival').value, people: parseInt(document.getElementById('f-people').value || 0), updatedAt: Date.now() }; if(currentEditId) db = db.map(x => String(x.id) === currentEditId ? record : x); else db.push(record); document.getElementById('modal-container').remove(); sync(); };
-        window.deleteItemDirect = (id) => { if(confirm('삭제하시겠습니까?')) { db = db.filter(x => String(x.id) !== id); document.getElementById('modal-container').remove(); sync(); } };
+        window.startCopy = () => { currentEditId = null; document.getElementById('delete-btn')?.remove(); event.currentTarget.remove(); localStorage.removeItem('logrit_draft_data'); showToast("복사 완료! 다른 날짜에 저장하세요."); };
+        window.saveRecord = (e) => { e.preventDefault(); const raw = document.getElementById('f-amount-display').value.replace(/[^0-9]/g, ''); const record = { id: currentEditId || String(Date.now()), date: document.getElementById('f-date').value, amount: parseInt(raw || 0), supplier: document.getElementById('f-supplier').value.trim() || "미지정", note: document.getElementById('f-note').value.trim() || "내용없음", time: document.getElementById('f-time').value, departure: document.getElementById('f-departure').value, arrival: document.getElementById('f-arrival').value, people: parseInt(document.getElementById('f-people').value || 0), updatedAt: Date.now() }; if(currentEditId) db = db.map(x => String(x.id) === currentEditId ? record : x); else db.push(record); document.getElementById('modal-container').remove(); localStorage.removeItem('logrit_draft_data'); sync(); };
+        window.deleteItemDirect = (id) => { if(confirm('삭제하시겠습니까?')) { db = db.filter(x => String(x.id) !== id); document.getElementById('modal-container').remove(); localStorage.removeItem('logrit_draft_data'); sync(); } };
         window.autoFormatTime = (el) => { el.value = el.value.replace(/[^0-9:]/g, ''); };
         window.formatTimeOnBlur = (el) => { let v = el.value.replace(/[^0-9]/g, ''); if(!v) return; if(v.length<=2) el.value = v.padStart(2,'0')+':00'; else if(v.length===3) el.value = '0'+v[0]+':'+v.slice(1,3); else el.value = v.slice(0,2)+':'+v.slice(2,4); };
         window.handleAmountInput = (el) => { let v = el.value.replace(/[^0-9]/g, ''); el.value = v ? Number(v).toLocaleString() : ''; };
